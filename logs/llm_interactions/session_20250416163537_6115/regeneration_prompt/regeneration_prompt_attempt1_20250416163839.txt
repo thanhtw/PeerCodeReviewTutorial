@@ -1,0 +1,107 @@
+=== METADATA ===
+requested_errors:
+[
+  "BUILD - Floating-point precision issues",
+  "BUILD - Off-by-one error",
+  "CHECKSTYLE - NestedTryDepth",
+  "CHECKSTYLE - FallThrough"
+]
+missing_errors:
+[
+  "CHECKSTYLE - NestedTryDepth",
+  "CHECKSTYLE - FallThrough"
+]
+found_errors:
+[
+  "BUILD - Floating-point precision issues",
+  "BUILD - Off-by-one error"
+]
+domain: banking
+attempt: 2
+
+=== PROMPT ===
+You are a code revision specialist who can expertly modify Java code to incorporate specific error patterns while preserving existing structure and functionality.
+
+            TASK:
+            Improve this Java code by adding the MISSING errors while preserving the EXISTING errors.
+
+            ORIGINAL CODE DOMAIN: banking
+
+            MISSING ERRORS - Add these to the code:
+            - CHECKSTYLE - NestedTryDepth: Create deeply nested try blocks
+- CHECKSTYLE - FallThrough: Create a switch statement where cases fall through without a break statement or comment
+
+            CORRECTLY IMPLEMENTED - Keep these in your solution:
+            - BUILD - Floating-point precision issues
+- BUILD - Off-by-one error
+
+            REQUIREMENTS:
+            1. Use EXACTLY the same banking domain and maintain the original code structure
+            2. Add ALL the missing errors in a natural way that makes sense in the code context
+            3. Preserve all correctly implemented errors (don't modify their implementation)
+            4. Mark EACH error with a comment: // ERROR: [TYPE] - [NAME] - [Brief explanation]
+            5. Return both annotated and clean versions of the revised code
+
+            PROVIDE TWO VERSIONS OF THE CODE:
+            1. First, provide the ANNOTATED VERSION with error comments, marked with:
+            ```java-annotated
+            // Your code with error annotations
+            ```
+
+            2. Then, provide the CLEAN VERSION without any error comments, marked with:
+            ```java-clean
+            // The same code without any error comments
+            ```
+
+            ORIGINAL CODE:
+            ```java
+            // BankingSystem.java
+public class BankingSystem {
+    public static void main(String[] args) {
+        Account account = new Account(1000.0);
+        System.out.println("Initial balance: " + account.getBalance());
+        
+        // Withdraw 500.0
+        account.withdraw(500.0);
+        System.out.println("After withdrawal: " + account.getBalance());
+        
+        // Deposit 200.0
+        account.deposit(200.0);
+        System.out.println("After deposit: " + account.getBalance());
+    }
+}
+
+class Account {
+    private double balance;
+    
+    public Account(double initialBalance) {
+        this.balance = initialBalance;
+    }
+    
+    public double getBalance() {
+        return balance;
+    }
+    
+    // ERROR: FLOATING-POINT PRECISION ISSUES - BALANCE COMPARISON
+    public void withdraw(double amount) {
+        if (balance == 500.0) { // Error: comparing floating-point numbers directly for equality without accounting for precision issues
+            System.out.println("Insufficient funds");
+        } else {
+            balance -= amount;
+        }
+    }
+    
+    // ERROR: OFF-BY-ONE ERROR - LOOP BOUNDARY CONDITION
+    public void deposit(double amount) {
+        for (int i = 0; i < 2; i++) { // Error: using '<' instead of '<=' or vice versa in a loop boundary condition
+            balance += amount;
+        }
+    }
+}
+
+// The same code without any error comments
+            ```
+            
+
+=== RESPONSE ===
+N/A - Prompt Only

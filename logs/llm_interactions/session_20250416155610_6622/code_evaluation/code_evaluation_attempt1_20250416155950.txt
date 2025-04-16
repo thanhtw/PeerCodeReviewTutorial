@@ -1,0 +1,120 @@
+=== METADATA ===
+requested_errors:
+[
+  "BUILD - Logic flaw in conditional statements",
+  "BUILD - String comparison using == instead of equals()",
+  "CHECKSTYLE - IllegalThrows"
+]
+code_length: 22
+
+=== PROMPT ===
+You are a Java code assessment expert who specializes in identifying specific error patterns in code examples for educational purposes.
+
+            TASK:
+            Evaluate this Java code and determine if it correctly implements all requested errors.
+
+            CODE:
+            ```java
+            // NotificationService.java
+public class NotificationService {
+    public void sendNotification(String recipient, String message) {
+        if (recipient == "admin" && message.length() > 10) { // ERROR: BUILD - Logic flaw in conditional statements
+            System.out.println("Sending notification to admin");
+        } else if (recipient.equals("user") || message.length() < 5) { // ERROR: CHECKSTYLE - IllegalThrows
+            throw new Exception("Invalid recipient or message"); // ERROR: CHECKSTYLE - IllegalThrows
+        }
+    }
+
+    public boolean isValidRecipient(String recipient) {
+        return recipient != null; // ERROR: BUILD - String comparison using == instead of equals()
+    }
+
+    public void processNotification(String recipient, String message) {
+        if (isValidRecipient(recipient)) {
+            sendNotification(recipient, message);
+        } else {
+            System.out.println("Invalid recipient");
+        }
+    }
+}
+            ```
+
+            REQUESTED ERRORS:
+            BUILD - Logic flaw in conditional statements
+BUILD - String comparison using == instead of equals()
+CHECKSTYLE - IllegalThrows
+
+            EVALUATION REQUIREMENTS:
+            1. For each error, determine if it's correctly implemented in the code
+            2. Identify the exact line number and code segment where each error is found
+            3. For missing errors, explain why you couldn't find them
+            4. Return a detailed analysis in JSON format
+
+            JSON RESPONSE FORMAT:
+            ```json
+            {
+            "found_errors": [
+                {
+                "error_type": "BUILD",
+                "error_name": "NullPointerException",
+                "line_number": 42,
+                "code_segment": "String str = null; int length = str.length();",
+                "explanation": "This implements a NullPointerException by calling length() on a null String"
+                }
+            ],
+            "missing_errors": [
+                {
+                "error_type": "CHECKSTYLE",
+                "error_name": "MemberName",
+                "explanation": "No variable names breaking member naming conventions found in the code"
+                }
+            ],
+            "valid": false,
+            "feedback": "The code implements 4 out of 5 requested errors. Missing the CHECKSTYLE-MemberName error."
+            }
+            ```
+
+            The "valid" field should be true only if ALL requested errors are properly implemented.
+            
+
+=== RESPONSE ===
+Here is the evaluation result in JSON format:
+
+```json
+{
+    "found_errors": [
+        {
+            "error_type": "BUILD",
+            "error_name": "Logic flaw in conditional statements",
+            "line_number": 4,
+            "code_segment": "if (recipient == \"admin\" && message.length() > 10) {",
+            "explanation": "The condition checks if the recipient is \"admin\" and the message length is greater than 10. This may not be the intended logic, as it does not consider other possible recipients or message lengths."
+        },
+        {
+            "error_type": "BUILD",
+            "error_name": "String comparison using == instead of equals()",
+            "line_number": 14,
+            "code_segment": "return recipient != null;",
+            "explanation": "The code uses the `!=` operator to compare strings, which may not be the intended behavior. It should use the `equals()` method instead."
+        },
+        {
+            "error_type": "CHECKSTYLE",
+            "error_name": "IllegalThrows",
+            "line_number": 9,
+            "code_segment": "throw new Exception(\"Invalid recipient or message\");",
+            "explanation": "The code throws an `Exception` without specifying the type of exception, which may not be the intended behavior."
+        }
+    ],
+    "missing_errors": [
+        {
+            "error_type": "BUILD",
+            "error_name": "NullPointerException",
+            "explanation": "No null pointer exceptions are thrown in the code."
+        }
+    ],
+    "valid": false,
+    "feedback": "The code implements 3 out of 5 requested errors. Missing the CHECKSTYLE-MemberName error and the BUILD-NullPointerException error."
+}
+```
+
+Note that the `valid` field is set to `false` because not all requested errors are properly implemented in the code.

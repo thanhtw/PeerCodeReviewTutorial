@@ -1,0 +1,126 @@
+=== METADATA ===
+requested_errors:
+[
+  "BUILD - Logic flaw in conditional statements",
+  "BUILD - String comparison using == instead of equals()",
+  "CHECKSTYLE - IllegalThrows"
+]
+code_length: 24
+
+=== PROMPT ===
+You are a Java code assessment expert who specializes in identifying specific error patterns in code examples for educational purposes.
+
+            TASK:
+            Evaluate this Java code and determine if it correctly implements all requested errors.
+
+            CODE:
+            ```java
+            // NotificationService.java
+public class NotificationService {
+    public void sendNotification(String recipient, String message) {
+        if (recipient == null || message == null) { // ERROR: BUILD - Logic flaw in conditional statements
+            System.out.println("Recipient or message is null");
+        } else if (recipient == "admin" && message.length() > 10) { // ERROR: BUILD - String comparison using == instead of equals()
+            System.out.println("Sending notification to admin");
+        } else if (recipient.equals("user") || message.length() < 5) { 
+            throw new Exception("Invalid recipient or message"); // ERROR: CHECKSTYLE - IllegalThrows
+        }
+    }
+
+    public boolean isValidRecipient(String recipient) {
+        return recipient != null; // ERROR: BUILD - String comparison using == instead of equals()
+    }
+
+    public void processNotification(String recipient, String message) {
+        if (isValidRecipient(recipient)) { 
+            sendNotification(recipient, message);
+        } else {
+            System.out.println("Invalid recipient");
+        }
+    }
+}
+            ```
+
+            REQUESTED ERRORS:
+            BUILD - Logic flaw in conditional statements
+BUILD - String comparison using == instead of equals()
+CHECKSTYLE - IllegalThrows
+
+            EVALUATION REQUIREMENTS:
+            1. For each error, determine if it's correctly implemented in the code
+            2. Identify the exact line number and code segment where each error is found
+            3. For missing errors, explain why you couldn't find them
+            4. Return a detailed analysis in JSON format
+
+            JSON RESPONSE FORMAT:
+            ```json
+            {
+            "found_errors": [
+                {
+                "error_type": "BUILD",
+                "error_name": "NullPointerException",
+                "line_number": 42,
+                "code_segment": "String str = null; int length = str.length();",
+                "explanation": "This implements a NullPointerException by calling length() on a null String"
+                }
+            ],
+            "missing_errors": [
+                {
+                "error_type": "CHECKSTYLE",
+                "error_name": "MemberName",
+                "explanation": "No variable names breaking member naming conventions found in the code"
+                }
+            ],
+            "valid": false,
+            "feedback": "The code implements 4 out of 5 requested errors. Missing the CHECKSTYLE-MemberName error."
+            }
+            ```
+
+            The "valid" field should be true only if ALL requested errors are properly implemented.
+            
+
+=== RESPONSE ===
+After evaluating the provided Java code, I found that it correctly implements some of the requested errors but not all.
+
+Here's a detailed analysis in JSON format:
+
+```json
+{
+  "found_errors": [
+    {
+      "error_type": "BUILD",
+      "error_name": "Logic flaw in conditional statements",
+      "line_number": 5,
+      "code_segment": "if (recipient == null || message == null) { ... }",
+      "explanation": "This implements a logic flaw by not checking the length of the message when recipient is 'admin'."
+    },
+    {
+      "error_type": "BUILD",
+      "error_name": "String comparison using == instead of equals()",
+      "line_number": 7,
+      "code_segment": "if (recipient == \"admin\" && message.length() > 10) { ... }",
+      "explanation": "This implements a string comparison flaw by using '==' instead of 'equals()' for comparing strings."
+    },
+    {
+      "error_type": "BUILD",
+      "error_name": "String comparison using == instead of equals()",
+      "line_number": 14,
+      "code_segment": "return recipient != null;",
+      "explanation": "This implements a string comparison flaw by using '==' instead of 'equals()' for comparing strings."
+    }
+  ],
+  "missing_errors": [
+    {
+      "error_type": "BUILD",
+      "error_name": "String comparison using == instead of equals()",
+      "explanation": "No other string comparison flaws found in the code, but it's possible that there might be some in other parts of the code not provided."
+    }
+  ],
+  "valid": false,
+  "feedback": "The code implements 3 out of 5 requested errors. Missing the CHECKSTYLE-IllegalThrows error and another BUILD-String comparison using == instead of equals() error."
+}
+```
+
+As you can see, the code correctly implements three of the requested errors: Logic flaw in conditional statements (BUILD), String comparison using == instead of equals() (BUILD) twice. However, it misses the CHECKSTYLE-IllegalThrows error and another BUILD-String comparison using == instead of equals() error.
+
+The "valid" field is set to false because not all requested errors are properly implemented.

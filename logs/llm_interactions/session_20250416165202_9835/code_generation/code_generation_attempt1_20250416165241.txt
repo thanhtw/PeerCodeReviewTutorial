@@ -1,0 +1,66 @@
+=== METADATA ===
+code_length: medium
+difficulty_level: medium
+domain: file_processing
+selected_errors:
+[
+  {
+    "type": "build",
+    "category": "LogicalErrors",
+    "name": "String comparison using == instead of equals()",
+    "description": "Using == to compare strings checks for reference equality instead of content equality.",
+    "implementation_guide": "Compare two strings using '==' instead of the equals() method"
+  },
+  {
+    "type": "checkstyle",
+    "category": "CodeQualityChecks",
+    "name": "MultipleVariableDeclarations",
+    "description": "Checks that each variable declaration is in its own statement and line.",
+    "implementation_guide": "Declare multiple variables in the same statement (e.g., 'int x, y, z;')"
+  },
+  {
+    "type": "checkstyle",
+    "category": "CodeQualityChecks",
+    "name": "EmptyStatement",
+    "description": "Checks for empty statements (standalone semicolons).",
+    "implementation_guide": "Include unnecessary semicolons creating empty statements (e.g., 'if(condition);;')"
+  }
+]
+
+=== PROMPT ===
+You are an expert Java programming instructor who creates educational code examples with specific errors for students to practice identifying and fixing.
+
+            TASK:
+            Generate a medium Java program for a file_processing system with intentional errors for code review practice.
+
+            REQUIREMENTS:
+            - Make a 1-2 classes with 4-6 methods Java program that implements ALL these errors
+            - Each error must be clearly marked with: // ERROR: [TYPE] - [NAME] - [Brief explanation]
+            - Code should be realistic and well-structured
+            - Return TWO VERSIONS of the code as described below
+
+            ERRORS TO IMPLEMENT:
+
+            BUILD - String comparison using == instead of equals(): Using == to compare strings checks for reference equality instead of content equality.
+Implement: Compare two strings using '==' instead of the equals() method
+
+CHECKSTYLE - MultipleVariableDeclarations: Checks that each variable declaration is in its own statement and line.
+Implement: Declare multiple variables in the same statement (e.g., 'int x, y, z;')
+
+CHECKSTYLE - EmptyStatement: Checks for empty statements (standalone semicolons).
+Implement: Include unnecessary semicolons creating empty statements (e.g., 'if(condition);;')
+
+            PROVIDE TWO VERSIONS OF THE CODE:
+            1. First, provide the ANNOTATED VERSION with error comments, marked with:
+            ```java-annotated
+            // Your code with error annotations
+            ```
+
+            2. Then, provide the CLEAN VERSION without any error comments, marked with:
+            ```java-clean
+            // The same code without any error comments
+            ```
+            
+
+=== RESPONSE ===
+content='Here are the two versions of the code:\n\n**ANNOTATED VERSION**\n```java-annotated\npublic class FileProcessor {\n    private String filePath;\n\n    public FileProcessor(String filePath) {\n        this.filePath = filePath;\n    }\n\n    public void processFile() {\n        String fileExtension = getFileExtension(filePath);\n        if (fileExtension == "txt") { // ERROR: BUILD - String comparison using == - Comparing strings using \'==\' instead of equals()\n            System.out.println("Processing text file...");\n        } else {\n            System.out.println("Unknown file type");\n        }\n        int x, y, z; // ERROR: CHECKSTYLE - MultipleVariableDeclarations - Declaring multiple variables in the same statement\n        x = 10;\n        y = 20;\n        z = 30;\n        if (x > y);; // ERROR: CHECKSTYLE - EmptyStatement - Unnecessary semicolons creating empty statements\n        System.out.println("File processed successfully");\n    }\n\n    private String getFileExtension(String filePath) {\n        int lastIndex = filePath.lastIndexOf(\'.\');\n        if (lastIndex != -1) {\n            return filePath.substring(lastIndex + 1);\n        } else {\n            return "";\n        }\n    }\n\n    public void saveFile(String content) {\n        // Simulate file saving\n        System.out.println("File saved successfully");\n    }\n}\n```\n\n**CLEAN VERSION**\n```java-clean\npublic class FileProcessor {\n    private String filePath;\n\n    public FileProcessor(String filePath) {\n        this.filePath = filePath;\n    }\n\n    public void processFile() {\n        String fileExtension = getFileExtension(filePath);\n        if (fileExtension.equals("txt")) {\n            System.out.println("Processing text file...");\n        } else {\n            System.out.println("Unknown file type");\n        }\n        int x = 10;\n        int y = 20;\n        int z = 30;\n        if (x > y) {\n            System.out.println("x is greater than y");\n        }\n        System.out.println("File processed successfully");\n    }\n\n    private String getFileExtension(String filePath) {\n        int lastIndex = filePath.lastIndexOf(\'.\');\n        if (lastIndex != -1) {\n            return filePath.substring(lastIndex + 1);\n        } else {\n            return "";\n        }\n    }\n\n    public void saveFile(String content) {\n        // Simulate file saving\n        System.out.println("File saved successfully");\n    }\n}\n```\nNote that I\'ve implemented the errors as requested:\n\n* In the `processFile()` method, I used `==` to compare strings instead of `equals()`.\n* In the same method, I declared multiple variables in the same statement.\n* Also in the same method, I included unnecessary semicolons creating empty statements.\n\nThe clean version of the code fixes these errors and provides a correct implementation of the file processing system.' additional_kwargs={} response_metadata={'token_usage': {'completion_tokens': 577, 'prompt_tokens': 340, 'total_tokens': 917, 'completion_time': 1.648571429, 'prompt_time': 0.010905611, 'queue_time': 0.21876205699999998, 'total_time': 1.65947704}, 'model_name': 'llama3-70b-8192', 'system_fingerprint': 'fp_dd4ae1c591', 'finish_reason': 'stop', 'logprobs': None} id='run-c6772da6-fe40-4b6e-8ead-455a909c638c-0' usage_metadata={'input_tokens': 340, 'output_tokens': 577, 'total_tokens': 917}

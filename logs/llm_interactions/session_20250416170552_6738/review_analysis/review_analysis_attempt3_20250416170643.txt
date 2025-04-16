@@ -1,0 +1,111 @@
+=== METADATA ===
+code_length: 38
+known_problems_count: 3
+student_review_length: 1
+has_enhanced_errors: True
+error: 'AIMessage' object is not subscriptable
+
+=== PROMPT ===
+You are an educational assessment expert analyzing a student's Java code review. 
+                Your task is to compare their review against known issues to evaluate accuracy and completeness.
+
+            CODE:
+            ```java
+            public class ECommerceSystem {
+    private double totalCost;
+    private boolean isValidOrder;
+
+    public ECommerceSystem() {
+        totalCost = 0.0;
+        isValidOrder = true; // ERROR: UNUSED VARIABLE - isValidOrder - This variable is never used
+    }
+
+    public void processOrder(double itemCost, int quantity) {
+        try {
+            try {
+                try {
+                    totalCost += itemCost * quantity; // ERROR: BUILD - Incorrect operator precedence - Unintended multiplication order
+                } catch (ArithmeticException e) {
+                    System.out.println("Error: " + e.getMessage());
+                }
+            } catch (Exception e) {
+                System.out.println("Error: " + e.getMessage());
+            }
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+            // ERROR: CHECKSTYLE - NestedTryDepth - Excessive try block nesting
+        }
+    }
+
+    public boolean isValidOrder(double minOrderValue) {
+        return (totalCost > minOrderValue) && (totalCost > 0) && (totalCost != 0.0) && (totalCost != -0.0); // ERROR: CHECKSTYLE - SimplifyBooleanExpression - Overly complex boolean expression
+    }
+
+    public void displayOrderSummary() {
+        if (isValidOrder(totalCost)) {
+            System.out.println("Order is valid. Total cost: " + totalCost);
+        } else {
+            System.out.println("Order is not valid.");
+        }
+    }
+}
+            ```
+
+            KNOWN ISSUES IN THE CODE:
+            - BUILD ERROR - Incorrect operator precedence: Happens when operations are performed in an unintended order due to precedence rules. (Line 11: 'try {')
+- CHECKSTYLE ERROR - NestedTryDepth: Checks that try-statements are not nested too deeply. (Line 14: 'totalCost += itemCost * quantity; // ERR...')
+- CHECKSTYLE ERROR - SimplifyBooleanExpression: Checks for boolean expressions that can be simplified. (Line 17: '}')
+
+            STUDENT'S REVIEW:
+            ```
+            dont see error haizzz
+            ```
+
+            Your Task:
+                1. First, identify ALL actual issues in the code (not just the ones listed in "Known Issues")
+                2. Determine which issues the student identified correctly
+                3.List issues the student missed
+                4. Evaluate the overall effectiveness of their review
+
+            JSON RESPONSE FORMAT:
+            ```json
+            {
+            "identified_problems": [
+                {
+                "problem": "Issue description from known list",
+                "student_comment": "Student's relevant comment that identified this",
+                "accuracy": 0.9,
+                "feedback": "Specific feedback on this identification"
+                }
+            ],
+            "missed_problems": [
+                {
+                "problem": "Issue description from known list",
+                "hint": "A helpful educational hint for finding this type of issue"
+                }
+            ],
+            "false_positives": [
+                {
+                "student_comment": "Incorrect comment from student",
+                "explanation": "Educational explanation of why this isn't an actual issue"
+                }
+            ],
+            "identified_count": 3,
+            "total_problems": 5,
+            "identified_percentage": 60.0,
+            "review_sufficient": true,
+            "educational_feedback": "Overall assessment of student understanding with specific improvement suggestions"
+            }
+            ```
+            Important Instructions:
+            1. Be thorough and examine every aspect of the code
+            2. Focus on logic errors, style violations, and structural problems
+            3. If the student's review is incomplete, clearly state this fact
+            4. Provide specific, actionable feedback that would help the student learn
+            5. Be concise but complete in your analysis
+            6. A review is considered "sufficient" if the student correctly identified at least 60% of the known issues.
+            7. Focus on providing educationally valuable feedback that helps the student improve their code review skills.
+            
+
+=== RESPONSE ===
+ERROR: 'AIMessage' object is not subscriptable

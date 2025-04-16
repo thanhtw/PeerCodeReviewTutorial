@@ -1,0 +1,116 @@
+=== METADATA ===
+requested_errors:
+[
+  "BUILD - Resource leaks",
+  "CHECKSTYLE - InnerAssignment",
+  "CHECKSTYLE - NestedTryDepth"
+]
+missing_errors:
+[
+  "BUILD - NullPointerException",
+  "BUILD - Resource leaks"
+]
+found_errors:
+[
+  "BUILD - ResourceLeak",
+  "CHECKSTYLE - InnerAssignment",
+  "CHECKSTYLE - NestedTryDepth"
+]
+domain: file_processing
+attempt: 2
+
+=== PROMPT ===
+You are a code revision specialist who can expertly modify Java code to incorporate specific error patterns while preserving existing structure and functionality.
+
+            TASK:
+            Improve this Java code by adding the MISSING errors while preserving the EXISTING errors.
+
+            ORIGINAL CODE DOMAIN: file_processing
+
+            MISSING ERRORS - Add these to the code:
+            - BUILD - Resource leaks: Open a resource like a file or stream without closing it properly
+
+            CORRECTLY IMPLEMENTED - Keep these in your solution:
+            - BUILD - ResourceLeak
+- CHECKSTYLE - InnerAssignment
+- CHECKSTYLE - NestedTryDepth
+
+            REQUIREMENTS:
+            1. Use EXACTLY the same file_processing domain and maintain the original code structure
+            2. Add ALL the missing errors in a natural way that makes sense in the code context
+            3. Preserve all correctly implemented errors (don't modify their implementation)
+            4. Mark EACH error with a comment: // ERROR: [TYPE] - [NAME] - [Brief explanation]
+            5. Return both annotated and clean versions of the revised code
+
+            PROVIDE TWO VERSIONS OF THE CODE:
+            1. First, provide the ANNOTATED VERSION with error comments, marked with:
+            ```java-annotated
+            // Your code with error annotations
+            ```
+
+            2. Then, provide the CLEAN VERSION without any error comments, marked with:
+            ```java-clean
+            // The same code without any error comments
+            ```
+
+            ORIGINAL CODE:
+            ```java
+            // Calculator.java: A simple calculator system with intentional errors for code review practice.
+
+public class Calculator {
+    public static void main(String[] args) {
+        // Calculate the sum of two numbers.
+        int result = add(5, 3);
+        System.out.println("The sum is: " + result);
+
+        // Try to divide by zero and catch the exception.
+        try {
+            int quotient = divide(10, 0);
+            System.out.println("The quotient is: " + quotient);
+        } catch (Exception e) {
+            System.out.println("Error occurred: " + e.getMessage());
+        }
+    }
+
+    public static int add(int x, int y) {
+        // ERROR: Resource leak - File not closed properly
+        java.io.File file = new java.io.File("temp.txt");
+        try {
+            java.io.FileWriter writer = new java.io.FileWriter(file);
+            writer.write(String.valueOf(x + y));
+            writer.close(); // ERROR: Not closed properly
+        } catch (Exception e) {
+            System.out.println("Error writing to file: " + e.getMessage());
+        }
+        return x + y;
+    }
+
+    public static int divide(int x, int y) {
+        if ((x = y) > 0) { // ERROR: InnerAssignment - Assignment inside expression
+            return x / y;
+        } else {
+            return 0;
+        }
+    }
+
+    public static void tryDeeply() {
+        try {
+            try {
+                try {
+                    System.out.println("This is a deeply nested try block.");
+                } catch (Exception e) {
+                    System.out.println("Error in the innermost try block: " + e.getMessage());
+                }
+            } catch (Exception e) {
+                System.out.println("Error in the middle try block: " + e.getMessage());
+            }
+        } catch (Exception e) {
+            System.out.println("Error in the outermost try block: " + e.getMessage());
+        }
+    }
+}
+            ```
+            
+
+=== RESPONSE ===
+N/A - Prompt Only

@@ -1,0 +1,193 @@
+=== METADATA ===
+code_length: 85
+known_problems_count: 3
+student_review_length: 1
+has_enhanced_errors: True
+
+=== PROMPT ===
+You are an educational assessment expert analyzing a student's Java code review. 
+                Your task is to compare their review against known issues to evaluate accuracy and completeness.
+
+            CODE:
+            ```java
+            public class ECommerceSystem {
+    // ERROR: CHECKSTYLE - JavadocVariable - Missing Javadoc comment for class variable
+    private List<Product> products;
+
+    public ECommerceSystem() {
+        products = new ArrayList<>();
+    }
+
+    /**
+     * Adds a product to the system
+     * 
+     * @param product the product to add
+     * @return true if the product was added successfully
+     * @param // ERROR: CHECKSTYLE - AtclauseOrder - Incorrect order of Javadoc tags
+     */
+    public boolean addProduct(Product product) {
+        products.add(product);
+        return true;
+    }
+
+    /**
+     * Removes a product from the system
+     * 
+     * @param product the product to remove
+     * @return true if the product was removed successfully
+     */
+    public boolean removeProduct(Product product) {
+        // ERROR: BUILD - Incorrect loop condition - Infinite loop
+        for (int i = 0; i >= 0; i++) {
+            if (products.contains(product)) {
+                products.remove(product);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Gets the total cost of all products in the system
+     * 
+     * @return the total cost
+     */
+    public double getTotalCost() {
+        double totalCost = 0;
+        for (Product product : products) {
+            totalCost += product.getPrice();
+        }
+        return totalCost;
+    }
+
+    /**
+     * Checks if a product is available in the system
+     * 
+     * @param product the product to check
+     * @return true if the product is available
+     */
+    public boolean isProductAvailable(Product product) {
+        // ERROR: BUILD - Incorrect loop condition - Premature exit
+        for (int i = 0; i < products.size(); i++) {
+            if (products.get(i).equals(product)) {
+                return true;
+            }
+            break; // ERROR: BUILD - Incorrect loop condition - Premature exit
+        }
+        return false;
+    }
+}
+
+class Product {
+    private String name;
+    private double price;
+
+    public Product(String name, double price) {
+        this.name = name;
+        this.price = price;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+}
+            ```
+
+            KNOWN ISSUES IN THE CODE:
+            - BUILD ERROR - Incorrect loop condition: Occurs when a loop condition is incorrect, leading to infinite loops or premature exits. (Line 11: '*')
+- CHECKSTYLE ERROR - JavadocVariable: Checks for Javadoc comments for class variables and instance variables. (Line 14: '* @param // ERROR: CHECKSTYLE - Atclause...')
+- CHECKSTYLE ERROR - AtclauseOrder: Checks the order of Javadoc @clauses. (Line 17: 'products.add(product);')
+
+            STUDENT'S REVIEW:
+            ```
+            No error in code
+            ```
+
+            Your Task:
+                1. First, identify ALL actual issues in the code (not just the ones listed in "Known Issues")
+                2. Determine which issues the student identified correctly
+                3.List issues the student missed
+                4. Evaluate the overall effectiveness of their review
+
+            JSON RESPONSE FORMAT:
+            ```json
+            {
+            "identified_problems": [
+                {
+                "problem": "Issue description from known list",
+                "student_comment": "Student's relevant comment that identified this",
+                "accuracy": 0.9,
+                "feedback": "Specific feedback on this identification"
+                }
+            ],
+            "missed_problems": [
+                {
+                "problem": "Issue description from known list",
+                "hint": "A helpful educational hint for finding this type of issue"
+                }
+            ],
+            "false_positives": [
+                {
+                "student_comment": "Incorrect comment from student",
+                "explanation": "Educational explanation of why this isn't an actual issue"
+                }
+            ],
+            "identified_count": 3,
+            "total_problems": 5,
+            "identified_percentage": 60.0,
+            "review_sufficient": true,
+            "educational_feedback": "Overall assessment of student understanding with specific improvement suggestions"
+            }
+            ```
+            Important Instructions:
+            1. Be thorough and examine every aspect of the code
+            2. Focus on logic errors, style violations, and structural problems
+            3. If the student's review is incomplete, clearly state this fact
+            4. Provide specific, actionable feedback that would help the student learn
+            5. Be concise but complete in your analysis
+            6. A review is considered "sufficient" if the student correctly identified at least 60% of the known issues.
+            7. Focus on providing educationally valuable feedback that helps the student improve their code review skills.
+            
+
+=== RESPONSE ===
+Here is the JSON response:
+
+```json
+{
+    "identified_problems": [],
+    "missed_problems": [
+        {
+            "problem": "BUILD ERROR - Incorrect loop condition: Occurs when a loop condition is incorrect, leading to infinite loops or premature exits.",
+            "hint": "Check the loop conditions in the removeProduct and isProductAvailable methods."
+        },
+        {
+            "problem": "CHECKSTYLE ERROR - JavadocVariable: Checks for Javadoc comments for class variables and instance variables.",
+            "hint": "Check the class variables and instance variables for missing Javadoc comments."
+        },
+        {
+            "problem": "CHECKSTYLE ERROR - AtclauseOrder: Checks the order of Javadoc @clauses.",
+            "hint": "Check the order of Javadoc @clauses in the addProduct method."
+        },
+        {
+            "problem": "BUILD ERROR - Premature exit: Occurs when a loop exits prematurely, leading to incorrect results.",
+            "hint": "Check the loop in the isProductAvailable method for premature exit."
+        },
+        {
+            "problem": "BUILD ERROR - Incorrect implementation: Occurs when a method does not implement the correct logic.",
+            "hint": "Check the implementation of the removeProduct method to ensure it correctly removes the product."
+        }
+    ],
+    "false_positives": [],
+    "identified_count": 0,
+    "total_problems": 5,
+    "identified_percentage": 0.0,
+    "review_sufficient": false,
+    "educational_feedback": "The student's review is incomplete and does not identify any of the known issues in the code. To improve, the student should carefully examine the code for logic errors, style violations, and structural problems. The student should also provide specific comments for each identified issue. In this case, the student should have identified the incorrect loop conditions, missing Javadoc comments, and incorrect implementation of the removeProduct method."
+}
+```
+
+In this response, I have identified all the actual issues in the code, including the incorrect loop conditions, missing Javadoc comments, and incorrect implementation of the removeProduct method. The student's review is incomplete and does not identify any of these issues. Therefore, the review is not sufficient, and the student needs to improve their code review skills by carefully examining the code and providing specific comments for each identified issue.

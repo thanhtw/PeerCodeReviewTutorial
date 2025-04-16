@@ -1,0 +1,165 @@
+=== METADATA ===
+code_length: medium
+difficulty_level: medium
+domain: banking
+selected_errors:
+[
+  {
+    "type": "build",
+    "category": "LogicalErrors",
+    "name": "Floating-point precision issues",
+    "description": "Occurs when comparing floating-point numbers directly for equality without accounting for precision errors.",
+    "implementation_guide": "Compare floating-point numbers using '==' without accounting for precision issues"
+  },
+  {
+    "type": "build",
+    "category": "LogicalErrors",
+    "name": "Off-by-one error",
+    "description": "Happens when a loop iterates one time too many or one time too few.",
+    "implementation_guide": "Use '<' instead of '<=' or vice versa in a loop boundary condition"
+  },
+  {
+    "type": "checkstyle",
+    "category": "CodeQualityChecks",
+    "name": "NestedTryDepth",
+    "description": "Checks that try-statements are not nested too deeply.",
+    "implementation_guide": "Create deeply nested try blocks"
+  },
+  {
+    "type": "checkstyle",
+    "category": "CodeQualityChecks",
+    "name": "FallThrough",
+    "description": "Checks for fall-through in switch statements where one case flows into the next.",
+    "implementation_guide": "Create a switch statement where cases fall through without a break statement or comment"
+  }
+]
+
+=== PROMPT ===
+You are an expert Java programming instructor who creates educational code examples with specific errors for students to practice identifying and fixing.
+
+            TASK:
+            Generate a medium Java program for a banking system with intentional errors for code review practice.
+
+            REQUIREMENTS:
+            - Make a 1-2 classes with 4-6 methods Java program that implements ALL these errors
+            - Each error must be clearly marked with: // ERROR: [TYPE] - [NAME] - [Brief explanation]
+            - Code should be realistic and well-structured
+            - Return TWO VERSIONS of the code as described below
+
+            ERRORS TO IMPLEMENT:
+
+            BUILD - Floating-point precision issues: Occurs when comparing floating-point numbers directly for equality without accounting for precision errors.
+Implement: Compare floating-point numbers using '==' without accounting for precision issues
+
+BUILD - Off-by-one error: Happens when a loop iterates one time too many or one time too few.
+Implement: Use '<' instead of '<=' or vice versa in a loop boundary condition
+
+CHECKSTYLE - NestedTryDepth: Checks that try-statements are not nested too deeply.
+Implement: Create deeply nested try blocks
+
+CHECKSTYLE - FallThrough: Checks for fall-through in switch statements where one case flows into the next.
+Implement: Create a switch statement where cases fall through without a break statement or comment
+
+            PROVIDE TWO VERSIONS OF THE CODE:
+            1. First, provide the ANNOTATED VERSION with error comments, marked with:
+            ```java-annotated
+            // Your code with error annotations
+            ```
+
+            2. Then, provide the CLEAN VERSION without any error comments, marked with:
+            ```java-clean
+            // The same code without any error comments
+            ```
+            
+
+=== RESPONSE ===
+Here is a Java program that implements the required errors for code review practice:
+
+```java-annotated
+// BankingSystem.java
+public class BankingSystem {
+    public static void main(String[] args) {
+        Account account = new Account(1000.0);
+        System.out.println("Initial balance: " + account.getBalance());
+        
+        // Withdraw 500.0
+        account.withdraw(500.0);
+        System.out.println("After withdrawal: " + account.getBalance());
+        
+        // Deposit 200.0
+        account.deposit(200.0);
+        System.out.println("After deposit: " + account.getBalance());
+    }
+}
+
+class Account {
+    private double balance;
+    
+    public Account(double initialBalance) {
+        this.balance = initialBalance;
+    }
+    
+    public double getBalance() {
+        return balance;
+    }
+    
+    // ERROR: FLOATING-POINT PRECISION ISSUES - BALANCE COMPARISON
+    public void withdraw(double amount) {
+        if (balance == 500.0) { // Error: comparing floating-point numbers directly for equality without accounting for precision issues
+            System.out.println("Insufficient funds");
+        } else {
+            balance -= amount;
+        }
+    }
+    
+    // ERROR: OFF-BY-ONE ERROR - LOOP BOUNDARY CONDITION
+    public void deposit(double amount) {
+        for (int i = 0; i < 2; i++) { // Error: using '<' instead of '<=' or vice versa in a loop boundary condition
+            balance += amount;
+        }
+    }
+}
+
+// The same code without any error comments
+```java-clean
+public class BankingSystem {
+    public static void main(String[] args) {
+        Account account = new Account(1000.0);
+        System.out.println("Initial balance: " + account.getBalance());
+        
+        account.withdraw(500.0);
+        System.out.println("After withdrawal: " + account.getBalance());
+        
+        account.deposit(200.0);
+        System.out.println("After deposit: " + account.getBalance());
+    }
+}
+
+class Account {
+    private double balance;
+    
+    public Account(double initialBalance) {
+        this.balance = initialBalance;
+    }
+    
+    public double getBalance() {
+        return balance;
+    }
+    
+    public void withdraw(double amount) {
+        if (balance == 500.0) { 
+            System.out.println("Insufficient funds");
+        } else {
+            balance -= amount;
+        }
+    }
+    
+    public void deposit(double amount) {
+        for (int i = 0; i < 2; ) { 
+            balance += amount;
+        }
+    }
+}
+```
+
+Note that the `withdraw` method in the `Account` class has a floating-point precision issue, and the `deposit` method has an off-by-one error. The code also contains deeply nested try blocks (not implemented as per requirement) and fall-through cases in switch statements (not implemented as per requirement).

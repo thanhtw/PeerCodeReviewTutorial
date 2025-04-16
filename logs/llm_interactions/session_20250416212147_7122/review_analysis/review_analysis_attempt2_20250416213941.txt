@@ -1,0 +1,200 @@
+=== METADATA ===
+code_length: 83
+known_problems_count: 4
+student_review_length: 2
+has_enhanced_errors: True
+
+=== PROMPT ===
+You are an educational assessment expert analyzing a student's Java code review. 
+                Your task is to compare their review against known issues to evaluate accuracy and completeness.
+
+            CODE:
+            ```java
+            // DataValidationSystem.java
+public class DataValidationSystem {
+    public static void main(String[] args) {
+        // ERROR: Logic flaw in conditional statements - Incorrect logical operator usage
+        if (isDataValid("123", "abc") && isDataValid("456", "def")) {
+            System.out.println("Data is valid");
+        } else {
+            System.out.println("Data is invalid");
+        }
+        
+        // NEW ERROR: BUILD - Logic flaw in conditional statements - Create a conditional statement with incorrect logical operators
+        if (isDataValid("789", "ghi") || !isDataValid("012", "jkl")) {
+            System.out.println("Data is valid");
+        } else {
+            System.out.println("Data is invalid");
+        }
+        
+        // NEW ERROR: BUILD - Logic flaw in conditional statements - Create a conditional statement with incorrect logical operators
+        if (isDataValid("abc", "def") && !isDataValid("ghi", "jkl")) {
+            System.out.println("Data is valid");
+        } else {
+            System.out.println("Data is invalid");
+        }
+    }
+
+    public static boolean isDataValid(String id, String password) {
+        // ERROR: SimplifyBooleanExpression - Overly complex boolean expression
+        return (id.length() > 3 && id.matches("[0-9]+") && !password.contains("admin")) ||
+                (id.length() < 4 && password.matches("[a-zA-Z]+"));
+        
+        // NEW ERROR: BUILD - Logic flaw in conditional statements - Incorrect logical operator usage
+        return (id.length() > 5 || id.matches("[a-zA-Z]+")) && password.length() > 0;
+    }
+
+    public static void validateData(String id, String password) {
+        // ERROR: IllegalThrows - Declaring a method that throws an overly generic exception
+        try {
+            if (!isDataValid(id, password)) {
+                throw new Exception("Invalid data");
+            }
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    public static void main2(String[] args) {
+        // ERROR: Race conditions - Shared resource accessed by multiple threads without synchronization
+        Thread t1 = new Thread(() -> {
+            for (int i = 0; i < 10; i++) {
+                System.out.println("Thread 1: " + i);
+                accessSharedResource();
+            }
+        });
+        Thread t2 = new Thread(() -> {
+            for (int i = 0; i < 10; i++) {
+                System.out.println("Thread 2: " + i);
+                accessSharedResource();
+            }
+        });
+
+        t1.start();
+        t2.start();
+
+        // NEW ERROR: BUILD - Race conditions - Shared resource accessed by multiple threads without synchronization
+        Thread t3 = new Thread(() -> {
+            for (int i = 0; i < 10; i++) {
+                System.out.println("Thread 3: " + i);
+                accessSharedResource();
+            }
+        });
+        t3.start();
+    }
+
+    public static void accessSharedResource() {
+        // Shared resource
+        int count = 0;
+        for (int i = 0; i < 10; i++) {
+            System.out.println("Accessing shared resource: " + i);
+            count++;
+        }
+        System.out.println("Count: " + count);
+    }
+}
+            ```
+
+            KNOWN ISSUES IN THE CODE:
+            - BUILD ERROR - Logic flaw in conditional statements: Causes unexpected behavior due to incorrect logical conditions. (Line 11: '// NEW ERROR: BUILD - Logic flaw in cond...')
+- BUILD ERROR - Race conditions: Occurs in multi-threaded applications when the timing or sequence of operations affects the correctness of a program. (Line 14: '} else {')
+- CHECKSTYLE ERROR - SimplifyBooleanExpression: Checks for boolean expressions that can be simplified. (Line 17: '')
+- CHECKSTYLE ERROR - IllegalThrows: Checks that methods do not declare throws for generic exception types. (Line 20: 'System.out.println("Data is valid");')
+
+            STUDENT'S REVIEW:
+            ```
+            the error in line 10.
+the error in line 15
+            ```
+
+            Your Task:
+                1. First, identify ALL actual issues in the code (not just the ones listed in "Known Issues")
+                2. Determine which issues the student identified correctly
+                3.List issues the student missed
+                4. Evaluate the overall effectiveness of their review
+
+            JSON RESPONSE FORMAT:
+            ```json
+            {
+            "identified_problems": [
+                {
+                "problem": "Issue description from known list",
+                "student_comment": "Student's relevant comment that identified this",
+                "accuracy": 0.9,
+                "feedback": "Specific feedback on this identification"
+                }
+            ],
+            "missed_problems": [
+                {
+                "problem": "Issue description from known list",
+                "hint": "A helpful educational hint for finding this type of issue"
+                }
+            ],
+            "false_positives": [
+                {
+                "student_comment": "Incorrect comment from student",
+                "explanation": "Educational explanation of why this isn't an actual issue"
+                }
+            ],
+            "identified_count": 3,
+            "total_problems": 5,
+            "identified_percentage": 60.0,
+            "review_sufficient": true,
+            "educational_feedback": "Overall assessment of student understanding with specific improvement suggestions"
+            }
+            ```
+            Important Instructions:
+            1. Be thorough and examine every aspect of the code
+            2. Focus on logic errors, style violations, and structural problems
+            3. If the student's review is incomplete, clearly state this fact
+            4. Provide specific, actionable feedback that would help the student learn
+            5. Be concise but complete in your analysis
+            6. A review is considered "sufficient" if the student correctly identified at least 60% of the known issues.
+            7. Focus on providing educationally valuable feedback that helps the student improve their code review skills.
+            
+
+=== RESPONSE ===
+Here's my analysis:
+
+**Identified Problems**
+
+1. **Logic flaw in conditional statements**: The student correctly identified the error in line 11, which is a logic flaw in conditional statements due to incorrect logical operators.
+
+Student comment: "the error in line 10."
+
+Accuracy: 0.9
+Feedback: "Great job identifying this issue! Remember to carefully review the conditions and ensure they are logically correct."
+
+2. **Logic flaw in conditional statements**: The student correctly identified another error in line 15, which is a logic flaw in conditional statements due to incorrect logical operators.
+
+Student comment: "the error in line 15"
+
+Accuracy: 0.9
+Feedback: "Excellent job spotting this issue! Make sure to double-check the conditions and use the correct logical operators."
+
+**Missed Problems**
+
+1. **SimplifyBooleanExpression**: The student missed the CHECKSTYLE ERROR - SimplifyBooleanExpression in line 17, which can be simplified.
+
+Hint: "Look for boolean expressions that can be simplified or combined using logical operators."
+
+2. **IllegalThrows**: The student missed the CHECKSTYLE ERROR - IllegalThrows in line 20, which declares a method that throws an overly generic exception.
+
+Hint: "Check if methods declare throws for specific exceptions instead of generic ones."
+
+3. **Race conditions**: The student missed the BUILD ERROR - Race conditions in lines 14-16, which occurs when multiple threads access shared resources without synchronization.
+
+Hint: "Look for code that accesses shared resources concurrently and consider using synchronization mechanisms to prevent race conditions."
+
+**False Positives**
+
+None
+
+**Identified Count**: 2
+**Total Problems**: 5
+**Identified Percentage**: 40.0
+**Review Sufficient**: False (the student only identified 2 out of the 5 known issues)
+
+**Educational Feedback**:
+
+"Great effort on identifying some of the issues! However, there are still a few problems that were missed. Remember to thoroughly review the code for logic flaws, style violations, and structural problems. Practice reviewing code regularly to improve your skills. For this review, focus on simplifying boolean expressions, declaring specific exceptions instead of generic ones, and preventing race conditions in multi-threaded applications."

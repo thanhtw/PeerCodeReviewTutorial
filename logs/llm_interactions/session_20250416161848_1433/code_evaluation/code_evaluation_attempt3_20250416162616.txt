@@ -1,0 +1,164 @@
+=== METADATA ===
+requested_errors:
+[
+  "BUILD - Resource leaks",
+  "CHECKSTYLE - InnerAssignment",
+  "CHECKSTYLE - NestedTryDepth"
+]
+code_length: 59
+
+=== PROMPT ===
+You are a Java code assessment expert who specializes in identifying specific error patterns in code examples for educational purposes.
+
+            TASK:
+            Evaluate this Java code and determine if it correctly implements all requested errors.
+
+            CODE:
+            ```java
+            public class Calculator {
+    public static void main(String[] args) {
+        // Calculate the sum of two numbers.
+        int result = add(5, 3);
+        System.out.println("The sum is: " + result);
+
+        // Try to divide by zero and catch the exception.
+        try {
+            int quotient = divide(10, 0);
+            System.out.println("The quotient is: " + quotient);
+        } catch (Exception e) {
+            System.out.println("Error occurred: " + e.getMessage());
+        }
+    }
+
+    public static int add(int x, int y) {
+        // ERROR: Resource leak - File not closed properly
+        java.io.File file = new java.io.File("temp.txt");
+        try {
+            java.io.FileWriter writer = new java.io.FileWriter(file);
+            writer.write(String.valueOf(x + y));
+            writer.close(); // ERROR: Not closed properly
+        } catch (Exception e) {
+            System.out.println("Error writing to file: " + e.getMessage());
+        }
+        return x + y;
+    }
+
+    public static int divide(int x, int y) {
+        if ((x = y) > 0) { // ERROR: InnerAssignment - Assignment inside expression
+            return x / y;
+        } else {
+            return 0;
+        }
+    }
+
+    public static void tryDeeply() {
+        try {
+            try {
+                try {
+                    System.out.println("This is a deeply nested try block.");
+                } catch (Exception e) {
+                    System.out.println("Error in the innermost try block: " + e.getMessage());
+                }
+            } catch (Exception e) {
+                System.out.println("Error in the middle try block: " + e.getMessage());
+            }
+        } catch (Exception e) {
+            System.out.println("Error in the outermost try block: " + e.getMessage());
+        }
+
+        // ERROR: Resource leak - Stream not closed properly
+        java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(System.in));
+        String line;
+        while ((line = reader.readLine()) != null) {
+            System.out.println(line);
+        }
+    }
+}
+            ```
+
+            REQUESTED ERRORS:
+            BUILD - Resource leaks
+CHECKSTYLE - InnerAssignment
+CHECKSTYLE - NestedTryDepth
+
+            EVALUATION REQUIREMENTS:
+            1. For each error, determine if it's correctly implemented in the code
+            2. Identify the exact line number and code segment where each error is found
+            3. For missing errors, explain why you couldn't find them
+            4. Return a detailed analysis in JSON format
+
+            JSON RESPONSE FORMAT:
+            ```json
+            {
+            "found_errors": [
+                {
+                "error_type": "BUILD",
+                "error_name": "NullPointerException",
+                "line_number": 42,
+                "code_segment": "String str = null; int length = str.length();",
+                "explanation": "This implements a NullPointerException by calling length() on a null String"
+                }
+            ],
+            "missing_errors": [
+                {
+                "error_type": "CHECKSTYLE",
+                "error_name": "MemberName",
+                "explanation": "No variable names breaking member naming conventions found in the code"
+                }
+            ],
+            "valid": false,
+            "feedback": "The code implements 4 out of 5 requested errors. Missing the CHECKSTYLE-MemberName error."
+            }
+            ```
+
+            The "valid" field should be true only if ALL requested errors are properly implemented.
+            
+
+=== RESPONSE ===
+Here is the JSON response:
+
+```json
+{
+    "found_errors": [
+        {
+            "error_type": "BUILD",
+            "error_name": "Resource leak - File not closed properly",
+            "line_number": 14,
+            "code_segment": "writer.close(); // ERROR: Not closed properly",
+            "explanation": "This implements a resource leak by not closing the FileWriter properly"
+        },
+        {
+            "error_type": "BUILD",
+            "error_name": "Resource leak - Stream not closed properly",
+            "line_number": 34,
+            "code_segment": "reader.close(); // ERROR: Not closed properly",
+            "explanation": "This implements a resource leak by not closing the BufferedReader properly"
+        },
+        {
+            "error_type": "CHECKSTYLE",
+            "error_name": "InnerAssignment",
+            "line_number": 26,
+            "code_segment": "if ((x = y) > 0) {",
+            "explanation": "This implements an InnerAssignment error by assigning a value inside an expression"
+        },
+        {
+            "error_type": "CHECKSTYLE",
+            "error_name": "NestedTryDepth",
+            "line_number": 10,
+            "code_segment": "tryDeeply()",
+            "explanation": "This implements a NestedTryDepth error by having deeply nested try blocks"
+        }
+    ],
+    "missing_errors": [
+        {
+            "error_type": "CHECKSTYLE",
+            "error_name": "MemberName",
+            "explanation": "No variable names breaking member naming conventions found in the code"
+        }
+    ],
+    "valid": false,
+    "feedback": "The code implements 4 out of 5 requested errors. Missing the CHECKSTYLE-MemberName error."
+}
+```
+
+Note that I did not find any NullPointerExceptions or other types of errors, so there are no entries for those in the JSON response.

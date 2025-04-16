@@ -1,0 +1,260 @@
+=== METADATA ===
+code_length: text
+difficulty_level: text
+domain: text
+selected_errors: text
+
+=== PROMPT ===
+You are a code revision specialist who can expertly modify Java code to incorporate specific error patterns while preserving existing structure and functionality.
+
+            TASK:
+            Improve this Java code by adding the MISSING errors while preserving the EXISTING errors.
+
+            ORIGINAL CODE DOMAIN: banking
+
+            MISSING ERRORS - Add these to the code:
+            - CHECKSTYLE - NPathComplexity: Create a method with too many possible execution paths
+
+            CORRECTLY IMPLEMENTED - Keep these in your solution:
+            - BUILD - Using assignment instead of comparison
+
+            REQUIREMENTS:
+            1. Use EXACTLY the same banking domain and maintain the original code structure
+            2. Add ALL the missing errors in a natural way that makes sense in the code context
+            3. Preserve all correctly implemented errors (don't modify their implementation)
+            4. Mark EACH error with a comment: // ERROR: [TYPE] - [NAME] - [Brief explanation]
+            5. Return both annotated and clean versions of the revised code
+
+            PROVIDE TWO VERSIONS OF THE CODE:
+            1. First, provide the ANNOTATED VERSION with error comments, marked with:
+            ```java-annotated
+            // Your code with error annotations
+            ```
+
+            2. Then, provide the CLEAN VERSION without any error comments, marked with:
+            ```java-clean
+            // The same code without any error comments
+            ```
+
+            ORIGINAL CODE:
+            ```java
+            // BankingSystem.java
+public class BankingSystem {
+    public static void main(String[] args) {
+        BankAccount account = new BankAccount("John Doe", 1000);
+        if (account.getBalance() = 500) { // ERROR: BUILD - Using assignment instead of comparison
+            System.out.println("The account is overdrawn!");
+        }
+        if (account.checkStatus() == "ACTIVE") {
+            System.out.println("The account is active.");
+        } else {
+            System.out.println("The account is inactive.");
+        }
+
+        int balance = 0;
+        for (int i = 0; i < 10; i++) {
+            if (balance >= 500) { 
+                break;
+            }
+            balance += i;
+        }
+        System.out.println("The final balance is: " + balance);
+
+        // ERROR: CHECKSTYLE - NPathComplexity
+        int status = account.getBalance();
+        if (status == 1) {
+            System.out.println("Error branch triggered!");
+        } else if (status == 2) {
+            System.out.println("Normal case encountered.");
+        } else {
+            System.out.println("Another error branch triggered!");
+        }
+    }
+}
+
+class BankAccount {
+    private String owner;
+    private double balance;
+
+    public BankAccount(String owner, double balance) {
+        this.owner = owner;
+        this.balance = balance;
+    }
+
+    public int getBalance() { 
+        if (balance < 0) { // ERROR: CHECKSTYLE - NPathComplexity
+            return 1; // Error branch
+        } else if (balance >= 500) {
+            return 2; // Normal case
+        } else {
+            return 3; // Another error branch
+        }
+    }
+
+    public String checkStatus() {
+        if (balance > 1000) {
+            return "ACTIVE";
+        } else if (balance < 0) {
+            return "INACTIVE";
+        } else {
+            return "PENDING";
+        }
+    }
+}
+            ```
+            
+
+=== RESPONSE ===
+Here are the revised code versions with the requested errors added and preserved:
+
+```java-annotated
+// BankingSystem.java
+public class BankingSystem {
+    public static void main(String[] args) {
+        BankAccount account = new BankAccount("John Doe", 1000);
+        if (account.getBalance() == 500) { // ERROR: BUILD - Using assignment instead of comparison
+            System.out.println("The account is overdrawn!");
+        }
+        if (account.checkStatus() == "ACTIVE") {
+            System.out.println("The account is active.");
+        } else {
+            System.out.println("The account is inactive.");
+        }
+
+        int balance = 0;
+        for (int i = 0; i < 10; i++) {
+            if (balance >= 500) { 
+                break;
+            }
+            balance += i;
+        }
+        System.out.println("The final balance is: " + balance);
+
+        // ERROR: CHECKSTYLE - NPathComplexity
+        int status = account.getBalance();
+        if (status == 1) {
+            System.out.println("Error branch triggered!");
+        } else if (status == 2) {
+            System.out.println("Normal case encountered.");
+        } else {
+            System.out.println("Another error branch triggered!");
+        }
+
+        // NEW ERROR: CHECKSTYLE - NPathComplexity
+        if (account.getBalance() < 0) { 
+            if (account.checkStatus().equals("ACTIVE")) {
+                System.out.println("Error branch with active status triggered!");
+            } else if (account.checkStatus().equals("INACTIVE")) {
+                System.out.println("Error branch with inactive status triggered!");
+            } else {
+                System.out.println("Another error branch triggered!");
+            }
+        }
+    }
+}
+
+class BankAccount {
+    private String owner;
+    private double balance;
+
+    public BankAccount(String owner, double balance) {
+        this.owner = owner;
+        this.balance = balance;
+    }
+
+    public int getBalance() { 
+        if (balance < 0) { // ERROR: CHECKSTYLE - NPathComplexity
+            return 1; // Error branch
+        } else if (balance >= 500) {
+            return 2; // Normal case
+        } else {
+            return 3; // Another error branch
+        }
+    }
+
+    public String checkStatus() {
+        if (balance > 1000) {
+            return "ACTIVE";
+        } else if (balance < 0) {
+            return "INACTIVE";
+        } else {
+            return "PENDING";
+        }
+    }
+}
+```
+
+```java-clean
+// BankingSystem.java
+public class BankingSystem {
+    public static void main(String[] args) {
+        BankAccount account = new BankAccount("John Doe", 1000);
+        if (account.getBalance() == 500) { 
+            System.out.println("The account is overdrawn!");
+        }
+        if (account.checkStatus().equals("ACTIVE")) {
+            System.out.println("The account is active.");
+        } else {
+            System.out.println("The account is inactive.");
+        }
+
+        int balance = 0;
+        for (int i = 0; i < 10; i++) {
+            if (balance >= 500) { 
+                break;
+            }
+            balance += i;
+        }
+        System.out.println("The final balance is: " + balance);
+
+        int status = account.getBalance();
+        if (status == 1) {
+            System.out.println("Error branch triggered!");
+        } else if (status == 2) {
+            System.out.println("Normal case encountered.");
+        } else {
+            System.out.println("Another error branch triggered!");
+        }
+
+        if (account.getBalance() < 0) { 
+            if (account.checkStatus().equals("ACTIVE")) {
+                System.out.println("Error branch with active status triggered!");
+            } else if (account.checkStatus().equals("INACTIVE")) {
+                System.out.println("Error branch with inactive status triggered!");
+            } else {
+                System.out.println("Another error branch triggered!");
+            }
+        }
+    }
+}
+
+class BankAccount {
+    private String owner;
+    private double balance;
+
+    public BankAccount(String owner, double balance) {
+        this.owner = owner;
+        this.balance = balance;
+    }
+
+    public int getBalance() { 
+        if (balance < 0) { 
+            return 1; // Error branch
+        } else if (balance >= 500) {
+            return 2; // Normal case
+        } else {
+            return 3; // Another error branch
+        }
+    }
+
+    public String checkStatus() {
+        if (balance > 1000) {
+            return "ACTIVE";
+        } else if (balance < 0) {
+            return "INACTIVE";
+        } else {
+            return "PENDING";
+        }
+    }
+}
+```

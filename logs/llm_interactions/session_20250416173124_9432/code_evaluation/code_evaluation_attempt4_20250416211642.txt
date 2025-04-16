@@ -1,0 +1,181 @@
+=== METADATA ===
+requested_errors:
+[
+  "BUILD - Ignoring method return values",
+  "CHECKSTYLE - NestedIfDepth",
+  "CHECKSTYLE - IllegalThrows"
+]
+code_length: 81
+
+=== PROMPT ===
+You are a Java code assessment expert who specializes in identifying specific error patterns in code examples for educational purposes.
+
+            TASK:
+            Evaluate this Java code and determine if it correctly implements all requested errors.
+
+            CODE:
+            ```java
+            // BankingSystem.java
+public class BankingSystem {
+    public static void main(String[] args) {
+        BankAccount account = new BankAccount("John Doe", 1000);
+        double balance = account.getBalance(); // ERROR: BUILD - Ignoring method return values
+        System.out.println("Initial Balance: " + balance);
+
+        if (account.isEligibleForLoan()) { // ERROR: CHECKSTYLE - NestedIfDepth
+            if (account.getAge() > 25) {
+                if (account.getIncome() > 50000) {
+                    if (account.getCreditScore() > 700) {
+                        if (Math.random() < 0.5) { // ERROR: MISSING - CHECKSTYLE - NestedIfDepth
+                            System.out.println("You are eligible for a loan!");
+                        } else {
+                            System.out.println("Loan application rejected.");
+                        }
+                    } else {
+                        System.out.println("Your credit score is too low.");
+                    }
+                } else {
+                    if (Math.random() < 0.5) { // ERROR: MISSING - CHECKSTYLE - NestedIfDepth
+                        System.out.println("Your income is too low.");
+                    } else {
+                        System.out.println("Income threshold not met.");
+                    }
+                }
+            } else {
+                System.out.println("You are too young for a loan.");
+            }
+        } else {
+            System.out.println("You are not eligible for a loan.");
+        }
+
+        try {
+            account.withdraw(500); // ERROR: CHECKSTYLE - IllegalThrows
+        } catch (Exception e) {
+            if (e.getMessage().contains("Insufficient")) { // ERROR: MISSING - CHECKSTYLE - NestedIfDepth
+                System.out.println("Error occurred: " + e.getMessage());
+            } else {
+                System.out.println("Unknown error occurred.");
+            }
+        }
+    }
+}
+
+class BankAccount {
+    private String owner;
+    private double balance;
+
+    public BankAccount(String owner, double balance) {
+        this.owner = owner;
+        this.balance = balance;
+    }
+
+    public boolean isEligibleForLoan() { // ERROR: CHECKSTYLE - IllegalThrows
+        return true; // Simulated eligibility check
+    }
+
+    public int getAge() {
+        return 30; // Simulated age
+    }
+
+    public double getIncome() {
+        return 60000; // Simulated income
+    }
+
+    public int getCreditScore() {
+        return 750; // Simulated credit score
+    }
+
+    public double getBalance() { // ERROR: BUILD - Ignoring method return values
+        return balance;
+    }
+
+    public void withdraw(double amount) throws Exception { // ERROR: CHECKSTYLE - IllegalThrows
+        if (amount > balance) {
+            throw new Exception("Insufficient funds!");
+        }
+        balance -= amount;
+    }
+}
+            ```
+
+            REQUESTED ERRORS:
+            BUILD - Ignoring method return values
+CHECKSTYLE - NestedIfDepth
+CHECKSTYLE - IllegalThrows
+
+            EVALUATION REQUIREMENTS:
+            1. For each error, determine if it's correctly implemented in the code
+            2. Identify the exact line number and code segment where each error is found
+            3. For missing errors, explain why you couldn't find them
+            4. Return a detailed analysis in JSON format
+
+            JSON RESPONSE FORMAT:
+            ```json
+            {
+            "found_errors": [
+                {
+                "error_type": "BUILD",
+                "error_name": "NullPointerException",
+                "line_number": 42,
+                "code_segment": "String str = null; int length = str.length();",
+                "explanation": "This implements a NullPointerException by calling length() on a null String"
+                }
+            ],
+            "missing_errors": [
+                {
+                "error_type": "CHECKSTYLE",
+                "error_name": "MemberName",
+                "explanation": "No variable names breaking member naming conventions found in the code"
+                }
+            ],
+            "valid": false,
+            "feedback": "The code implements 4 out of 5 requested errors. Missing the CHECKSTYLE-MemberName error."
+            }
+            ```
+
+            The "valid" field should be true only if ALL requested errors are properly implemented.
+            
+
+=== RESPONSE ===
+Here is the evaluation result in JSON format:
+
+```json
+{
+    "found_errors": [
+        {
+            "error_type": "BUILD",
+            "error_name": "Ignoring method return values",
+            "line_number": 5,
+            "code_segment": "double balance = account.getBalance();",
+            "explanation": "The code ignores the return value of getBalance() by assigning it to a variable without using it"
+        },
+        {
+            "error_type": "CHECKSTYLE",
+            "error_name": "NestedIfDepth",
+            "line_number": 14,
+            "code_segment": "if (account.getAge() > 25) { ... }",
+            "explanation": "The code has a nested if statement with a depth of 4, violating the CHECKSTYLE rule"
+        },
+        {
+            "error_type": "CHECKSTYLE",
+            "error_name": "IllegalThrows",
+            "line_number": 34,
+            "code_segment": "account.withdraw(500);",
+            "explanation": "The code throws an Exception in the withdraw() method, violating the CHECKSTYLE rule"
+        }
+    ],
+    "missing_errors": [
+        {
+            "error_type": "CHECKSTYLE",
+            "error_name": "NestedIfDepth",
+            "line_number": null,
+            "code_segment": null,
+            "explanation": "The code does not contain any missing NestedIfDepth errors, as all if statements are properly nested"
+        }
+    ],
+    "valid": false,
+    "feedback": "The code implements 3 out of 5 requested errors. Missing the CHECKSTYLE-NestedIfDepth error."
+}
+```
+
+Note that I did not find any BUILD-Ignoring method return values errors other than the one mentioned in the JSON response, and there are no missing CHECKSTYLE-NestedIfDepth errors as all if statements are properly nested.
