@@ -1,3 +1,4 @@
+
 """
 Feedback Tab UI module for Java Peer Review Training System.
 
@@ -7,6 +8,7 @@ This module provides the functions for rendering the feedback and analysis tab.
 import streamlit as st
 import logging
 from typing import Dict, List, Any, Optional, Callable
+from utils.code_utils import generate_comparison_report
 
 # Configure logging
 logging.basicConfig(
@@ -16,12 +18,65 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 def render_feedback_tab(workflow, feedback_display_ui):
-    """Render the feedback and analysis tab with enhanced visuals."""
+    """Render the feedback and analysis tab with enhanced visualization."""
     state = st.session_state.workflow_state
     
-    if not state.comparison_report and not state.review_summary:
-        st.info("Please submit your review in the 'Submit Review' tab first.")
-        return
+    # Get the latest review analysis and history
+    latest_review = None
+    review_history = []
+    
+    # Make sure we have review history
+    if state.review_history:
+        latest_review = state.review_history[-1]
+        
+        # Convert review history to the format expected by FeedbackDisplayUI
+        for review in state.review_history:
+            review_history.append({
+                "iteration_number": review.iteration_number,
+                "student_review": review.student_review,
+                "review_analysis": review.analysis
+            })
+    
+    # If we have review history but no comparison report, generate one
+    if latest_review and latest_review.analysis and not state.comparison_report:
+        try:
+            if state.code_snippet and state.code_snippet.known_problems:
+                # Generate a comparison report if it doesn't exist
+                state.comparison_report = generate_comparison_report(
+                    state.code_snippet.known_problems,
+                    latest_review.analysis
+                )
+                logger.info("Generated comparison report for feedback tab")
+        except Exception as e:
+            logger.error(f"Error generating comparison report: {str(e)}")
+            if not state.comparison_report:
+                state.comparison_report = (
+                    "# Review Feedback\n\n"
+                    "There was an error generating a detailed comparison report. "
+                    "Please check your review history for details."
+                )
+    
+    # Check if we have reviews but no feedback to display
+    if review_history and not state.comparison_report and not state.review_summary:
+        st.warning("Review data is available but no feedback generated. Generating feedback now...")
+        
+        # Extract latest analysis for display
+        latest_analysis = latest_review.analysis if latest_review else None
+        
+        # Generate a basic summary if nothing else is available
+        if latest_analysis:
+            identified_count = latest_analysis.get("identified_count", 0)
+            total_problems = latest_analysis.get("total_problems", 0)
+            identified_percentage = latest_analysis.get("identified_percentage", 0)
+            
+            state.review_summary = (
+                f"# Review Summary\n\n"
+                f"You found {identified_count} out of {total_problems} issues "
+                f"({identified_percentage:.1f}% accuracy).\n\n"
+                f"Check the detailed analysis below for more information."
+            )
+            
+            logger.info("Generated basic review summary for feedback tab")
     
     # Reset callback with confirmation
     def handle_reset():
@@ -40,18 +95,13 @@ def render_feedback_tab(workflow, feedback_display_ui):
             # Rerun the app
             st.rerun()
     
-    # Get the latest review analysis
-    latest_review = state.review_history[-1] if state.review_history else None
-    latest_analysis = latest_review.analysis if latest_review else None
+    # If no feedback generated yet but we have reviews, display a message
+    if not state.comparison_report and not state.review_summary and not review_history:
+        st.info("Please submit your review in the 'Submit Review' tab first.")
+        return
     
-    # Convert review history to the format expected by FeedbackDisplayUI
-    review_history = []
-    for review in state.review_history:
-        review_history.append({
-            "iteration_number": review.iteration_number,
-            "student_review": review.student_review,
-            "review_analysis": review.analysis
-        })
+    # Get the latest review analysis
+    latest_analysis = latest_review.analysis if latest_review else None
     
     # Display feedback results
     feedback_display_ui.render_results(

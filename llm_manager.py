@@ -420,107 +420,6 @@ class LLMManager:
             
         return f"{size:.2f} TB"
             
-    def download_ollama_model(self, model_name: str) -> bool:
-        """
-        Download a model using Ollama.
-        
-        Args:
-            model_name (str): Name of the model to download
-            
-        Returns:
-            bool: True if successful, False otherwise
-        """
-        if self.provider != "ollama":
-            logger.error("Cannot download model: Ollama provider not active")
-            return False
-            
-        try:
-            self.pull_status[model_name] = {
-                "status": "pulling",
-                "progress": 0,
-                "error": None
-            }
-            
-            # Start the pull operation
-            response = requests.post(
-                f"{self.ollama_base_url}/api/pull",
-                json={"name": model_name, "stream": False},
-                timeout=10
-            )
-            
-            if response.status_code != 200:
-                logger.error(f"Failed to start model download: {response.text}")
-                self.pull_status[model_name] = {
-                    "status": "failed",
-                    "progress": 0,
-                    "error": f"Failed to start download: {response.text}"
-                }
-                return False
-            
-            logger.info(f"Started downloading {model_name}...")
-            
-            # Poll for completion
-            model_ready = False
-            start_time = time.time()
-            max_wait_time = 600  # 10 minute timeout
-            
-            while not model_ready and (time.time() - start_time) < max_wait_time:
-                try:
-                    # Check if model exists in list of models
-                    check_response = requests.get(f"{self.ollama_base_url}/api/tags", timeout=5)
-                    if check_response.status_code == 200:
-                        models = check_response.json().get("models", [])
-                        if any(model["name"] == model_name for model in models):
-                            model_ready = True
-                            self.pull_status[model_name] = {
-                                "status": "completed",
-                                "progress": 100,
-                                "error": None
-                            }
-                            logger.info(f"Model {model_name} downloaded successfully!")
-                            break
-                    
-                    # Update progress (simulated)
-                    elapsed = time.time() - start_time
-                    progress = min(95, int(elapsed / (max_wait_time * 0.8) * 100))
-                    
-                    self.pull_status[model_name] = {
-                        "status": "pulling",
-                        "progress": progress,
-                        "error": None
-                    }
-                    
-                    time.sleep(2)  # Check every 2 seconds
-                except Exception as e:
-                    # Log error but continue polling
-                    logger.warning(f"Error checking model status: {str(e)}")
-                    self.pull_status[model_name] = {
-                        "status": "pulling",
-                        "progress": self.pull_status[model_name].get("progress", 0),
-                        "error": f"Error checking status: {str(e)}"
-                    }
-                    time.sleep(5)
-            
-            if not model_ready:
-                logger.warning(f"Download timeout for {model_name}. It may still be downloading.")
-                self.pull_status[model_name] = {
-                    "status": "timeout",
-                    "progress": self.pull_status[model_name].get("progress", 0),
-                    "error": "Download timeout. The model may still be downloading."
-                }
-                return False
-            
-            return True
-                
-        except Exception as e:
-            logger.error(f"Error downloading model: {str(e)}")
-            self.pull_status[model_name] = {
-                "status": "failed",
-                "progress": 0,
-                "error": str(e)
-            }
-            return False
-    
     def get_pull_status(self, model_name: str) -> Dict[str, Any]:
         """
         Get the current pull status of a model.
@@ -656,6 +555,107 @@ class LLMManager:
                 return any(model["name"] == model_name for model in models)
             return False
         except Exception:
+            return False
+    
+    def download_ollama_model(self, model_name: str) -> bool:
+        """
+        Download a model using Ollama with improved progress tracking.
+        
+        Args:
+            model_name (str): Name of the model to download
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        if self.provider != "ollama":
+            logger.error("Cannot download model: Ollama provider not active")
+            return False
+            
+        try:
+            self.pull_status[model_name] = {
+                "status": "pulling",
+                "progress": 0,
+                "error": None
+            }
+            
+            # Start the pull operation
+            response = requests.post(
+                f"{self.ollama_base_url}/api/pull",
+                json={"name": model_name, "stream": False},
+                timeout=10
+            )
+            
+            if response.status_code != 200:
+                logger.error(f"Failed to start model download: {response.text}")
+                self.pull_status[model_name] = {
+                    "status": "failed",
+                    "progress": 0,
+                    "error": f"Failed to start download: {response.text}"
+                }
+                return False
+            
+            logger.info(f"Started downloading {model_name}...")
+            
+            # Poll for completion
+            model_ready = False
+            start_time = time.time()
+            max_wait_time = 600  # 10 minute timeout
+            
+            while not model_ready and (time.time() - start_time) < max_wait_time:
+                try:
+                    # Check if model exists in list of models
+                    check_response = requests.get(f"{self.ollama_base_url}/api/tags", timeout=5)
+                    if check_response.status_code == 200:
+                        models = check_response.json().get("models", [])
+                        if any(model["name"] == model_name for model in models):
+                            model_ready = True
+                            self.pull_status[model_name] = {
+                                "status": "completed",
+                                "progress": 100,
+                                "error": None
+                            }
+                            logger.info(f"Model {model_name} downloaded successfully!")
+                            break
+                    
+                    # Update progress (simulated)
+                    elapsed = time.time() - start_time
+                    progress = min(95, int(elapsed / (max_wait_time * 0.8) * 100))
+                    
+                    self.pull_status[model_name] = {
+                        "status": "pulling",
+                        "progress": progress,
+                        "error": None
+                    }
+                    
+                    time.sleep(2)  # Check every 2 seconds
+                except Exception as e:
+                    # Log error but continue polling
+                    logger.warning(f"Error checking model status: {str(e)}")
+                    self.pull_status[model_name] = {
+                        "status": "pulling",
+                        "progress": self.pull_status[model_name].get("progress", 0),
+                        "error": f"Error checking status: {str(e)}"
+                    }
+                    time.sleep(5)
+            
+            if not model_ready:
+                logger.warning(f"Download timeout for {model_name}. It may still be downloading.")
+                self.pull_status[model_name] = {
+                    "status": "timeout",
+                    "progress": self.pull_status[model_name].get("progress", 0),
+                    "error": "Download timeout. The model may still be downloading."
+                }
+                return False
+            
+            return True
+                
+        except Exception as e:
+            logger.error(f"Error downloading model: {str(e)}")
+            self.pull_status[model_name] = {
+                "status": "failed",
+                "progress": 0,
+                "error": str(e)
+            }
             return False
     
     def get_gpu_memory_usage(self) -> Optional[Dict[str, Any]]:
@@ -865,7 +865,7 @@ class LLMManager:
     
     def _initialize_ollama_model(self, model_name: str, model_params: Dict[str, Any] = None) -> Optional[BaseLanguageModel]:
         """
-        Initialize an Ollama model with enhanced GPU support.
+        Initialize an Ollama model with improved GPU support.
         
         Args:
             model_name: Name of the model to initialize
@@ -876,11 +876,20 @@ class LLMManager:
         """
         # Apply default model parameters if none provided
         if model_params is None:
-            model_params = self._get_ollama_default_params(model_name)
+            model_params = {}
         
-        # Enable GPU acceleration if available and forced
+        # Ensure GPU is always enabled if available and forced
         if self.force_gpu:
-            model_params = self.enable_gpu_for_model(model_params)
+            # Get GPU info with comprehensive detection
+            gpu_info = self.check_gpu_availability(extended=True)
+            
+            if gpu_info and gpu_info.get("has_gpu", False):
+                # Always set GPU parameters for better performance
+                gpu_layers = self.gpu_layers if self.gpu_layers > 0 else -1  # -1 means use all layers
+                model_params["n_gpu_layers"] = gpu_layers
+                model_params["f16_kv"] = True  # Use half-precision for key/value cache to save GPU memory
+                
+                logger.info(f"Enabling GPU acceleration for Ollama model {model_name} with {gpu_layers} layers")
         
         # Initialize Ollama model
         try:
@@ -893,10 +902,8 @@ class LLMManager:
                     logger.error(f"Failed to pull model {model_name}")
                     return None
             
-            # Initialize Ollama model with parameters
+            # Extract supported parameters
             temperature = model_params.get("temperature", 0.7)
-            
-            # Separate Ollama-specific parameters from other parameters
             ollama_params = {}
             
             # Only include supported parameters
@@ -911,17 +918,15 @@ class LLMManager:
                 "top_p"
             ]
             
-            # Extract supported parameters
             for key, value in model_params.items():
                 if key in supported_params:
                     ollama_params[key] = value
             
             # Handle GPU layers separately as a model kwarg
             if "n_gpu_layers" in model_params:
-                # Some versions use num_gpu instead of n_gpu_layers
+                # Try to use num_gpu parameter via model_kwargs if available
                 gpu_layers = model_params["n_gpu_layers"]
                 
-                # Try to use num_gpu parameter via model_kwargs if available
                 if hasattr(Ollama, "model_kwargs") or "model_kwargs" in inspect.signature(Ollama.__init__).parameters:
                     ollama_params["model_kwargs"] = {"num_gpu": gpu_layers}
                 else:
@@ -951,25 +956,18 @@ class LLMManager:
                     temperature=temperature
                 )
             
-            # Check if reasoning mode is enabled
-            reasoning_mode = os.getenv("REASONING_MODE", "false").lower() == "true"
-            
             # Test the model with a simple query
             try:
-                if reasoning_mode:
-                    # For reasoning mode, use a test prompt that encourages reasoning
-                    test_prompt = "Let's think step by step: What is 2+2?"
-                    _ = llm.invoke(test_prompt)
-                else:
-                    _ = llm.invoke("hello")
-                    
-                # Log GPU info if available
-                gpu_info = self.check_gpu_availability()
-                if gpu_info.get("has_gpu", False):
-                    logger.info(f"Successfully initialized model {model_name} with GPU support")
-                else:
-                    logger.info(f"Successfully initialized model {model_name} (CPU only)")
-                    
+                _ = llm.invoke("hello")
+                
+                # Log GPU status
+                if self.force_gpu:
+                    gpu_info = self.check_gpu_availability()
+                    if gpu_info and gpu_info.get("has_gpu", False):
+                        logger.info(f"Successfully initialized {model_name} with GPU acceleration")
+                    else:
+                        logger.info(f"Successfully initialized {model_name} (CPU only)")
+                
                 return llm
             except Exception as e:
                 logger.error(f"Error testing model {model_name}: {str(e)}")
@@ -981,7 +979,7 @@ class LLMManager:
     
     def initialize_model_from_env(self, model_key: str, temperature_key: str) -> Optional[BaseLanguageModel]:
         """
-        Initialize a model using environment variables with enhanced provider awareness.
+        Initialize a model using environment variables with enhanced GPU awareness.
         
         Args:
             model_key (str): Environment variable key for model name
@@ -1049,15 +1047,33 @@ class LLMManager:
                         model_name = larger_model
                         logger.info(f"Reasoning mode: Upgraded to {model_name}")
         
-        # Provider-specific parameter adjustments
-        if current_provider == "ollama" and self.force_gpu:
-            gpu_info = self.check_gpu_availability()
-            if gpu_info.get("has_gpu", False):
-                # Set GPU-specific parameters
-                model_params["n_gpu_layers"] = self.gpu_layers
-                model_params["f16_kv"] = True  # Use half-precision for key/value cache
-                model_params["logits_all"] = False  # Don't compute logits for all tokens (faster)
-                logger.info(f"Enabling GPU acceleration for Ollama model {model_name}")
+        # Aggressively ensure GPU is enabled for Ollama
+        if current_provider == "ollama":
+            # Force enable GPU by default
+            if self.force_gpu:
+                # Check GPU availability with comprehensive detection
+                gpu_info = self.check_gpu_availability(extended=True)
+                if gpu_info.get("has_gpu", False):
+                    # Always set GPU parameters for Ollama models
+                    gpu_name = gpu_info.get("gpu_name", "GPU")
+                    logger.info(f"GPU acceleration enabled: {gpu_name}")
+                    
+                    # Set GPU-specific parameters
+                    model_params["n_gpu_layers"] = self.gpu_layers
+                    model_params["f16_kv"] = True  # Use half-precision for key/value cache
+                    model_params["logits_all"] = False  # Don't compute logits for all tokens (faster)
+                    
+                    # Adjust GPU layers based on available memory if possible
+                    if "memory_total" in gpu_info and isinstance(gpu_info["memory_total"], (int, float)):
+                        memory_gb = gpu_info["memory_total"] / (1024 * 1024 * 1024)
+                        if memory_gb < 4:
+                            # Very limited GPU memory - be more conservative
+                            model_params["n_gpu_layers"] = min(24, self.gpu_layers if self.gpu_layers > 0 else 24)
+                        elif memory_gb < 8:
+                            # Limited GPU memory
+                            model_params["n_gpu_layers"] = min(32, self.gpu_layers if self.gpu_layers > 0 else 32)
+                else:
+                    logger.warning("GPU not available, using CPU for inference")
         
         # Initialize the model with the provider-specific settings
         logger.info(f"Initializing model {model_name} with params: {model_params}")
@@ -1177,7 +1193,7 @@ class LLMManager:
         
     def check_gpu_availability(self, extended: bool = False) -> Optional[Dict[str, Any]]:
         """
-        Check if GPU is available for Ollama with enhanced details and fallback detection.
+        Check if GPU is available for Ollama with enhanced detection.
         For Groq, returns None since it's a cloud provider with GPU availability handled by Groq.
         
         Args:
@@ -1295,43 +1311,6 @@ class LLMManager:
                     return result
         except:
             pass
-        
-        # Method 2: Generate with GPU flag and check response
-        try:
-            # Try a simple generate request with GPU flag to see if it works
-            response = requests.post(
-                f"{self.ollama_base_url}/api/generate",
-                json={"model": self.default_model, "prompt": "test", "options": {"num_gpu": 1}},
-                timeout=5
-            )
-            
-            if response.status_code == 200:
-                # If we get a successful response, GPU might be available
-                return {
-                    "has_gpu": True,
-                    "gpu_name": "GPU Detected",
-                    "message": "GPU appears to be working with Ollama",
-                    "detection_method": "generation-test"
-                }
-        except:
-            pass
-        
-        # Method 3: Check environment for GPU
-        if os.getenv("ENABLE_GPU", "false").lower() == "true" and self.force_gpu:
-            # User has explicitly configured GPU, so assume it's available even if we can't detect it
-            return {
-                "has_gpu": True,
-                "gpu_name": "GPU (Assumed from environment)",
-                "message": "GPU assumed available based on environment configuration",
-                "detection_method": "environment-config"
-            }
-        
-        # If all methods fail, assume no GPU
-        return {
-            "has_gpu": False,
-            "message": "No GPU detected for Ollama (after trying multiple detection methods)",
-            "system_memory": self.get_system_memory_usage() if extended else {}
-        }    
     
     def enable_gpu_for_model(self, model_params: Dict[str, Any]) -> Dict[str, Any]:
         """
