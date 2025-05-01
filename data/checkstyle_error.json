@@ -1,0 +1,124 @@
+{
+    "NamingConventions": [
+      {
+        "check_name": "TypeName",
+        "description": "Class, interface, or enum names should follow UpperCamelCase convention (start with uppercase letter).",
+        "implementation_guide": "Create a class with a name that starts with lowercase. Example: class myClass instead of class MyClass."
+      },
+      {
+        "check_name": "MemberName",
+        "description": "Instance variable names should follow lowerCamelCase convention (start with lowercase letter).",
+        "implementation_guide": "Declare instance variables that start with uppercase or use underscores. Example: private int Count; or private int user_id;"
+      },
+      {
+        "check_name": "MethodName",
+        "description": "Method names should follow lowerCamelCase convention (start with lowercase letter).",
+        "implementation_guide": "Create methods that start with uppercase or use underscores. Example: public void Calculate() or public void print_message()"
+      },
+      {
+        "check_name": "ConstantName",
+        "description": "Constant names (static final fields) should be in UPPER_CASE with underscores separating words.",
+        "implementation_guide": "Define constants that don't use ALL_CAPS. Example: static final int maxValue = 100; instead of static final int MAX_VALUE = 100;"
+      },
+      {
+        "check_name": "LocalVariableName",
+        "description": "Local variable names should follow lowerCamelCase convention.",
+        "implementation_guide": "Declare local variables with non-standard names. Example: int Counter = 0; or String User_Name = \"John\";"
+      }
+    ],
+    "FormattingAndWhitespace": [
+      {
+        "check_name": "WhitespaceAround",
+        "description": "Operators, keywords, and braces should be surrounded by spaces for readability.",
+        "implementation_guide": "Remove spaces around operators or braces. Example: int x=5+2; instead of int x = 5 + 2;"
+      },
+      {
+        "check_name": "NoWhitespaceBefore",
+        "description": "There should be no whitespace before certain tokens like semicolons and commas.",
+        "implementation_guide": "Add spaces before commas or semicolons. Example: int x = 5 ; or String[] names = {\"John\" , \"Mary\"};"
+      },
+      {
+        "check_name": "LineLength",
+        "description": "Lines should not exceed 100 characters in length for readability.",
+        "implementation_guide": "Create a very long line of code that exceeds 100 characters, such as a long string concatenation or a method call with many parameters."
+      },
+      {
+        "check_name": "EmptyLineSeparator",
+        "description": "There should be empty lines between class/method definitions and other code blocks.",
+        "implementation_guide": "Place method definitions directly adjacent to each other without empty lines between them."
+      }
+    ],
+    "BlockAndCodeStructure": [
+      {
+        "check_name": "LeftCurly",
+        "description": "Left curly braces should be at the end of the same line as the declaration.",
+        "implementation_guide": "Place opening curly braces on a new line instead of at the end of the line. Example: if (condition) \\n { instead of if (condition) {"
+      },
+      {
+        "check_name": "RightCurly",
+        "description": "Right curly braces should be alone on a line unless followed by else, catch, finally, or similar.",
+        "implementation_guide": "Place closing curly braces on the same line as the next statement. Example: } else instead of } \\n else"
+      },
+      {
+        "check_name": "NeedBraces",
+        "description": "Code blocks should always use braces, even for single-statement blocks.",
+        "implementation_guide": "Omit braces for a single-statement code block. Example: if (condition) doSomething(); instead of if (condition) { doSomething(); }"
+      },
+      {
+        "check_name": "EmptyBlock",
+        "description": "Empty code blocks should be documented with a comment.",
+        "implementation_guide": "Create an empty catch block without a comment. Example: try { ... } catch (Exception e) {}"
+      }
+    ],
+    "ImportStatements": [
+      {
+        "check_name": "AvoidStarImport",
+        "description": "Wildcard imports (.*) should be avoided as they can cause naming conflicts.",
+        "implementation_guide": "Use a wildcard import. Example: import java.util.*; instead of explicit imports for specific classes."
+      },
+      {
+        "check_name": "UnusedImports",
+        "description": "Imported classes that are not used in the code should be removed.",
+        "implementation_guide": "Import a class that isn't used anywhere in the code. Example: import java.util.Scanner; without ever using Scanner."
+      },
+      {
+        "check_name": "RedundantImport",
+        "description": "Classes that are already imported or from java.lang should not be explicitly imported.",
+        "implementation_guide": "Import the same class multiple times or explicitly import a java.lang class. Example: import java.lang.String;"
+      }
+    ],
+    "JavadocAndComments": [
+      {
+        "check_name": "JavadocMethod",
+        "description": "Public methods, constructors, and class-level Javadoc should be properly documented.",
+        "implementation_guide": "Create a public method without any Javadoc comment, or with incomplete documentation."
+      },
+      {
+        "check_name": "JavadocStyle",
+        "description": "Javadoc comments should be properly formatted with correct punctuation and descriptions.",
+        "implementation_guide": "Create a Javadoc comment that's missing the period at the end of a sentence or has incorrect tag format."
+      }
+    ],
+    "CodeQuality": [
+      {
+        "check_name": "MagicNumber",
+        "description": "Numbers other than -1, 0, and 1 should be declared as named constants for better readability.",
+        "implementation_guide": "Use numeric literals in code instead of named constants. Example: if (count > 5) instead of if (count > MAX_ITEMS)."
+      },
+      {
+        "check_name": "SimplifyBooleanExpression",
+        "description": "Boolean expressions should be simplified to improve readability.",
+        "implementation_guide": "Write an overly complex boolean expression. Example: if (x == true) or if (!(x != true))."
+      },
+      {
+        "check_name": "SimplifyBooleanReturn",
+        "description": "Boolean returns can be simplified by returning the boolean expression directly.",
+        "implementation_guide": "Use a conditional return with a boolean. Example: if(x) return true; else return false; instead of return x;"
+      },
+      {
+        "check_name": "MultipleVariableDeclarations",
+        "description": "Each variable should be declared in its own statement for clarity.",
+        "implementation_guide": "Declare multiple variables in a single statement. Example: int x, y, z; instead of separate declarations."
+      }
+    ]
+  }

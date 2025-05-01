@@ -1,0 +1,105 @@
+{
+    "CompileTimeErrors": [
+      {
+        "error_name": "Cannot find symbol",
+        "description": "This error occurs when you try to use a variable, method, or class that hasn't been defined or imported.",
+        "implementation_guide": "Use a variable or call a method that hasn't been declared. Example: int x = undefinedVar; or result = nonExistentMethod();"
+      },
+      {
+        "error_name": "Incompatible types",
+        "description": "This error happens when you assign a value of one type to a variable of an incompatible type.",
+        "implementation_guide": "Assign a String to an int variable or similar type mismatch. Example: int number = \"text\";"
+      },
+      {
+        "error_name": "Missing return statement",
+        "description": "This error occurs when a non-void method doesn't have a return statement in all code paths.",
+        "implementation_guide": "Create a method with a return type but omit the return statement, or have a conditional return that doesn't cover all cases."
+      },
+      {
+        "error_name": "Illegal start of expression",
+        "description": "This syntax error happens when the Java compiler can't understand your code structure.",
+        "implementation_guide": "Create a syntax error like a missing semicolon, unbalanced brackets, or misplaced keywords."
+      },
+      {
+        "error_name": "Class not found",
+        "description": "This error happens when the compiler can't find a referenced class.",
+        "implementation_guide": "Try to use a class that doesn't exist or reference a class without importing it."
+      },
+      {
+        "error_name": "Unreachable statement",
+        "description": "Code that can never be executed because it appears after a return, break, or continue statement.",
+        "implementation_guide": "Place code immediately after a return statement, like: return value; System.out.println(\"This will never run\");"
+      }
+    ],
+    "RuntimeErrors": [
+      {
+        "error_name": "NullPointerException",
+        "description": "This happens when you try to use an object reference that points to null.",
+        "implementation_guide": "Set an object to null then try to call a method on it. Example: String str = null; int length = str.length();"
+      },
+      {
+        "error_name": "ArrayIndexOutOfBoundsException",
+        "description": "This occurs when you try to access an array element with an invalid index.",
+        "implementation_guide": "Try to access an array index that doesn't exist. Example: int[] array = new int[3]; int value = array[5];"
+      },
+      {
+        "error_name": "ArithmeticException",
+        "description": "This happens when an arithmetic operation has invalid parameters, like division by zero.",
+        "implementation_guide": "Divide an integer by zero. Example: int result = 10 / 0;"
+      },
+      {
+        "error_name": "ClassCastException",
+        "description": "This occurs when you try to cast an object to an incompatible type.",
+        "implementation_guide": "Cast an object to an incompatible class. Example: Object obj = \"hello\"; Integer num = (Integer)obj;"
+      },
+      {
+        "error_name": "NumberFormatException",
+        "description": "This happens when you try to convert a string to a number, but the string doesn't have a valid format.",
+        "implementation_guide": "Try to parse a non-numeric string to a number. Example: int num = Integer.parseInt(\"abc\");"
+      }
+    ],
+    "LogicalErrors": [
+      {
+        "error_name": "Incorrect loop condition",
+        "description": "A loop that runs too many or too few times due to a faulty condition.",
+        "implementation_guide": "Create a loop with a condition that's always true (infinite loop) or never runs when it should."
+      },
+      {
+        "error_name": "Off-by-one error",
+        "description": "An iteration error where a loop iterates one time too many or too few.",
+        "implementation_guide": "Use a loop boundary that's off by one, like using < instead of <= when you need to include the upper bound."
+      },
+      {
+        "error_name": "Using assignment instead of comparison",
+        "description": "Using = (assignment) instead of == (comparison) in a conditional statement.",
+        "implementation_guide": "Use single equals in a condition. Example: if(x = 5) instead of if(x == 5)."
+      },
+      {
+        "error_name": "String comparison using ==",
+        "description": "Comparing String objects with == instead of the equals() method.",
+        "implementation_guide": "Compare two strings with == instead of equals(). Example: if(str1 == str2) instead of if(str1.equals(str2))."
+      },
+      {
+        "error_name": "Unintended integer division",
+        "description": "Integer division that truncates decimal results when floating-point division was intended.",
+        "implementation_guide": "Divide two integers where decimal precision is needed. Example: double result = 5 / 2; // gives 2.0 instead of 2.5"
+      }
+    ],
+    "WarningsAndHints": [
+      {
+        "error_name": "Unused variable",
+        "description": "A variable is declared but never used in the code.",
+        "implementation_guide": "Declare a variable but don't use it anywhere in the method."
+      },
+      {
+        "error_name": "Redundant cast",
+        "description": "A casting operation that is unnecessary because the type is already compatible.",
+        "implementation_guide": "Cast an object to a type it already is. Example: String s = (String) \"Hello\";"
+      },
+      {
+        "error_name": "Resource leak",
+        "description": "Failing to close resources like files, database connections, or streams.",
+        "implementation_guide": "Open a file or stream without closing it. Example: FileReader reader = new FileReader(file); // No reader.close()"
+      }
+    ]
+  }
