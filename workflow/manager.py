@@ -241,7 +241,8 @@ class WorkflowManager:
                 # Generate the comparison report with the updated analysis
                 state.comparison_report = generate_comparison_report(
                     found_errors,
-                    latest_review.analysis
+                    latest_review.analysis,
+                    state.review_history
                 )
                 logger.info("Generated comparison report for feedback")
             except Exception as e:

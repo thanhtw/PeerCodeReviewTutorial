@@ -639,23 +639,25 @@ def get_error_count_for_difficulty(difficulty: str) -> int:
     }
     return difficulty_map.get(str(difficulty).lower(), 4)
 
-def generate_comparison_report(evaluation_errors: List[str], review_analysis: Dict[str, Any]) -> str:
+def generate_comparison_report(evaluation_errors: List[str], review_analysis: Dict[str, Any], 
+                              review_history: List[Dict[str, Any]] = None) -> str:
     """
-    Generate a concise comparison report between student review and evaluated errors.
+    Generate a concise comparison report showing progress across review attempts.
     
     Args:
         evaluation_errors: List of errors found by the evaluation
-        review_analysis: Analysis of the student review
+        review_analysis: Analysis of the latest student review
+        review_history: History of all review attempts
         
     Returns:
         Formatted comparison report
     """
-    # Extract performance metrics
+    # Extract performance metrics from latest review
     identified_problems = review_analysis.get("identified_problems", [])
     missed_problems = review_analysis.get("missed_problems", [])
     false_positives = review_analysis.get("false_positives", [])
     
-    # Get total problems count from different possible sources
+    # Get total problems count
     total_problems = (review_analysis.get("total_problems", 0) or 
                      review_analysis.get("original_error_count", 0) or 
                      len(evaluation_errors))
@@ -672,20 +674,51 @@ def generate_comparison_report(evaluation_errors: List[str], review_analysis: Di
     # Build report with markdown
     report = "# Code Review Assessment\n\n"
     
-    # Performance summary
-    report += f"**Performance:** {identified_count}/{total_problems} issues identified ({accuracy:.1f}%)\n\n"
+    # Add progress tracking if multiple attempts exist
+    if review_history and len(review_history) > 1:
+        report += "## Progress Across Attempts\n\n"
+        report += "| Attempt | Issues Found | Accuracy |\n"
+        report += "|---------|--------------|----------|\n"
+        
+        for i, review in enumerate(review_history, 1):
+            analysis = review.get("review_analysis", {})
+            found = analysis.get("identified_count", 0)
+            acc = analysis.get("identified_percentage", 0)
+            report += f"| {i} | {found}/{total_problems} | {acc:.1f}% |\n"
+        
+        # Compare first vs. latest attempt
+        first = review_history[0].get("review_analysis", {})
+        first_found = first.get("identified_count", 0)
+        first_acc = first.get("identified_percentage", 0)
+        
+        if accuracy > first_acc:
+            improvement = accuracy - first_acc
+            report += f"\n📈 **Improvement**: +{improvement:.1f}% from first attempt\n\n"
     
-    # Issues identified
+    # Performance summary
+    report += f"## Final Review Performance\n\n"
+    report += f"**Score:** {identified_count}/{total_problems} issues identified ({accuracy:.1f}%)\n\n"
+    
+    # Issues identified in latest attempt
     if identified_str:
         report += "## Issues Correctly Identified\n\n"
         for i, problem in enumerate(identified_str, 1):
             report += f"✅ **{i}.** {problem}\n\n"
     
-    # Issues missed
+    # Issues missed in latest attempt
     if missed_str:
         report += "## Issues Missed\n\n"
         for i, problem in enumerate(missed_str, 1):
             report += f"❌ **{i}.** {problem}\n\n"
+            
+            # Add specific guidance for missed issues
+            problem_lower = problem.lower()
+            if "null" in problem_lower:
+                report += "*Tip: Check for null pointer handling before method calls*\n\n"
+            elif "name" in problem_lower or "convention" in problem_lower:
+                report += "*Tip: Verify variable/class naming conventions (camelCase, PascalCase)*\n\n"
+            elif "equals" in problem_lower or "==" in problem_lower:
+                report += "*Tip: Look for object equality issues (.equals() vs ==)*\n\n"
     
     # False positives
     if false_str:
@@ -693,25 +726,24 @@ def generate_comparison_report(evaluation_errors: List[str], review_analysis: Di
         for i, problem in enumerate(false_str, 1):
             report += f"⚠️ **{i}.** {problem}\n\n"
     
-    # Improvement tips - categorize missed issues
-    if missed_str:
-        missed_categories = set()
-        for problem in missed_str:
-            problem_lower = problem.lower()
-            if "null" in problem_lower: missed_categories.add("null pointer handling")
-            elif "naming" in problem_lower: missed_categories.add("naming conventions")
-            elif "equals" in problem_lower or "==" in problem_lower: missed_categories.add("object comparison")
-            elif "array" in problem_lower: missed_categories.add("array bounds")
-            elif "exception" in problem_lower: missed_categories.add("exception handling")
-            elif "whitespace" in problem_lower: missed_categories.add("code formatting")
+    # New knowledge gained (if multiple attempts)
+    if review_history and len(review_history) > 1:
+        # Get identified issues from first attempt
+        first_review = review_history[0].get("review_analysis", {})
+        first_identified = first_review.get("identified_problems", [])
+        first_identified_str = [str(p) if not isinstance(p, str) else p for p in first_identified]
         
-        if missed_categories:
-            report += "## Focus Areas\n\n"
-            for category in sorted(missed_categories):
-                report += f"- **{category}**\n"
+        # Find newly identified issues in the latest attempt
+        new_findings = [p for p in identified_str if p not in first_identified_str]
+        
+        if new_findings:
+            report += "## New Issues Found\n\n"
+            report += "*Issues you identified in your latest attempt that you missed initially:*\n\n"
+            for i, problem in enumerate(new_findings, 1):
+                report += f"🔍 **{i}.** {problem}\n\n"
     
     # Quick tip
-    report += "\n**Tip:** Use format `Line X: [Error Type] - Description` in future reviews.\n"
+    report += "\n**Tip for next time:** Use format `Line X: [Error Type] - Description` in your reviews.\n"
     
     return report
 
