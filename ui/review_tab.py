@@ -17,6 +17,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# In ui/review_tab.py
 def process_student_review(workflow, student_review: str):
     """
     Process a student review with progress indicator and improved error handling.
@@ -62,8 +63,23 @@ def process_student_review(workflow, student_review: str):
             # Log submission attempt
             logger.info(f"Submitting review (iteration {current_iteration}): {student_review[:100]}...")
             
+            # Create a placeholder for history display before submission processing
+            # This ensures the UI shows the review even during processing
+            if 'review_history_placeholder' not in st.session_state:
+                st.session_state.review_history_placeholder = []
+                
+            # Add current review to temporary history for immediate display
+            st.session_state.review_history_placeholder.append({
+                "iteration_number": current_iteration,
+                "student_review": student_review,
+                "timestamp": datetime.datetime.now().isoformat()
+            })
+            
             # Submit the review and update the state
             updated_state = workflow.submit_review(state, student_review)
+            
+            # Clear the placeholder now that we have real data
+            st.session_state.review_history_placeholder = []
             
             # Check for errors
             if updated_state.error:
@@ -81,91 +97,8 @@ def process_student_review(workflow, student_review: str):
             # Update status
             status.update(label="Analysis complete! Displaying results...", state="complete")
             
-            # IMPORTANT NEW FEATURE: Display immediate feedback
-            st.success("Your review has been analyzed successfully!")
-            
-            # Show metrics for the review
-            latest_review = updated_state.review_history[-1]
-            if latest_review and hasattr(latest_review, 'analysis') and latest_review.analysis:
-                analysis = latest_review.analysis
-                
-                # Create metrics row
-                col1, col2, col3 = st.columns(3)
-                
-                with col1:
-                    st.metric(
-                        "Issues Found", 
-                        f"{analysis.get('identified_count', 0)}/{analysis.get('total_problems', 0)}",
-                        help="Number of issues correctly identified out of total issues"
-                    )
-                with col2:
-                    st.metric(
-                        "Accuracy", 
-                        f"{analysis.get('identified_percentage', 0):.1f}%",
-                        help="Percentage of issues correctly identified"
-                    )
-                with col3:
-                    st.metric(
-                        "False Positives", 
-                        f"{len(analysis.get('false_positives', []))}",
-                        help="Number of issues incorrectly identified"
-                    )
-                
-                # Display identified issues
-                identified_problems = analysis.get("identified_problems", [])
-                if identified_problems:
-                    with st.expander("✅ Issues You Correctly Identified", expanded=True):
-                        for problem in identified_problems:
-                            if isinstance(problem, dict) and "problem" in problem:
-                                st.markdown(f"- **{problem['problem']}**")
-                            else:
-                                st.markdown(f"- **{problem}**")
-                
-                # Display missed issues
-                missed_problems = analysis.get("missed_problems", [])
-                if missed_problems:
-                    with st.expander("❌ Issues You Missed", expanded=True):
-                        for problem in missed_problems:
-                            if isinstance(problem, dict) and "problem" in problem:
-                                st.markdown(f"- **{problem['problem']}**")
-                            else:
-                                st.markdown(f"- **{problem}**")
-                
-                # Display targeted guidance if available and not the final iteration
-                if not updated_state.review_sufficient and updated_state.current_iteration <= updated_state.max_iterations:
-                    st.markdown("### Guidance for Next Attempt")
-                    
-                    targeted_guidance = None
-                    if len(updated_state.review_history) > 0:
-                        latest_review = updated_state.review_history[-1]
-                        targeted_guidance = getattr(latest_review, 'targeted_guidance', None)
-                    
-                    if targeted_guidance:
-                        st.info(targeted_guidance)
-                    else:
-                        st.info("Try to find more issues in your next review attempt.")
-                
-                # Show the decision about continuing or completing
-                if workflow.should_continue_review(updated_state) == "generate_summary":
-                    st.success("🎉 Your review is complete! You can now view detailed feedback.")
-                    
-                    # Automatic navigation to feedback tab
-                    if current_iteration >= updated_state.max_iterations:
-                        st.warning(f"You have completed all {updated_state.max_iterations} review iterations.")
-                    elif updated_state.review_sufficient:
-                        st.success("Your review was sufficient! Great job identifying the issues.")
-                    
-                    # Add button to view detailed feedback
-                    if st.button("View Detailed Feedback"):
-                        # Move to the feedback tab
-                        st.session_state.active_tab = 2
-                        st.rerun()
-                else:
-                    # Provide option to continue reviewing
-                    st.info(f"You can submit another review attempt ({current_iteration}/{updated_state.max_iterations} completed)")
-            
-            # Force rerun to update UI
-            time.sleep(0.5)  # Short delay to ensure the status message is visible
+            # Force UI refresh 
+            st.rerun()
             
             return True
             

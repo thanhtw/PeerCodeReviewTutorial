@@ -118,26 +118,26 @@ class FeedbackDisplayUI:
                 with tabs[1]:  # Missed Issues
                     self._render_missed_issues(review_analysis)
                 
-                # with tabs[2]:  # False Positives
-                #     self._render_false_positives(review_analysis)
-                
-                # with tabs[3]:  # Summary
-                #     if review_summary:
-                #         st.markdown(review_summary)
+                with tabs[2]:  # False Positives
+                    self._render_false_positives(review_analysis)
+        
+                with tabs[3]:  # Summary
+                    if review_summary:
+                        st.markdown(review_summary)
         
         # Download button for feedback report
-        #if review_summary:
-            # Create a dynamic key based on the content
-            #feedback_key = f"download_feedback_{hash(review_summary)%10000}"
+        if review_summary:
+            #Create a dynamic key based on the content
+            feedback_key = f"download_feedback_{hash(review_summary)%10000}"
             
-            # if st.download_button(
-            #     label="Download Feedback Report", 
-            #     data=review_summary,
-            #     file_name="java_review_feedback.md",
-            #     mime="text/markdown",
-            #     key='download2'
-            # ):
-            #     st.success("Feedback report downloaded successfully!")
+            if st.download_button(
+                label="Download Feedback Report", 
+                data=review_summary,
+                file_name="java_review_feedback.md",
+                mime="text/markdown",
+                key='download2'
+            ):
+                st.success("Feedback report downloaded successfully!")
         
         # Start over button
         st.markdown("---")
@@ -302,11 +302,25 @@ class FeedbackDisplayUI:
         st.subheader(f"False Positives ({len(false_positives)})")
         
         for i, issue in enumerate(false_positives, 1):
+            explanation = ""
+            # Handle different formats of false positives
+            if isinstance(issue, dict):
+                if "student_comment" in issue:
+                    comment = issue["student_comment"]
+                    if "explanation" in issue:
+                        explanation = f"<p><em>Reason: {issue['explanation']}</em></p>"
+                else:
+                    # Use the whole dict as the comment
+                    comment = str(issue)
+            else:
+                # Use the string directly
+                comment = str(issue)
+            
             st.markdown(
                 f"""
                 <div style="border-left: 4px solid #ffc107; padding: 10px; margin: 10px 0; border-radius: 4px;">
-                <strong>⚠ {i}. {issue}</strong>
-                <p>This wasn't actually an issue in the code.</p>
+                <strong>⚠ {i}. {comment}</strong>
+                {explanation}
                 </div>
                 """, 
                 unsafe_allow_html=True

@@ -19,6 +19,25 @@ logger = logging.getLogger(__name__)
 def render_feedback_tab(workflow, feedback_display_ui):
     """Render the feedback and analysis tab with enhanced visualization."""
     state = st.session_state.workflow_state
+
+    # Check if review process is completed
+    review_completed = False
+    if hasattr(state, 'current_iteration') and hasattr(state, 'max_iterations'):
+        if state.current_iteration > state.max_iterations:
+            review_completed = True
+        elif hasattr(state, 'review_sufficient') and state.review_sufficient:
+            review_completed = True
+
+    # Block access if review not completed
+    if not review_completed:
+        st.warning("Please complete all review attempts before accessing feedback.")
+        st.info(f"Current progress: {state.current_iteration-1}/{state.max_iterations} attempts completed")
+        
+        # Add button to go back to review tab
+        if st.button("Go to Review Tab"):
+            st.session_state.active_tab = 1
+            st.rerun()
+        return
     
     # Get the latest review analysis and history
     latest_review = None

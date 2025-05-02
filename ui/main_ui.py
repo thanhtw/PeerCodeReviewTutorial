@@ -313,8 +313,25 @@ def create_enhanced_tabs(labels: List[str]):
     # Handle tab switching based on session state
     current_tab = st.session_state.active_tab
     
-    # For debugging
-    logger.debug(f"Current active tab: {current_tab}")
+    # Check if we need to block access to feedback tab
+    if hasattr(st.session_state, 'workflow_state'):
+        state = st.session_state.workflow_state
+        # Determine if review is completed
+        review_completed = False
+        
+        # Check if max iterations reached or review is sufficient
+        if hasattr(state, 'current_iteration') and hasattr(state, 'max_iterations'):
+            if state.current_iteration > state.max_iterations:
+                review_completed = True
+            elif hasattr(state, 'review_sufficient') and state.review_sufficient:
+                review_completed = True
+        
+        # Block access to feedback tab (index 2) if review not completed
+        if current_tab == 2 and not review_completed:
+            st.warning("Please complete all review attempts before accessing feedback.")
+            # Reset to review tab
+            st.session_state.active_tab = 1
+            current_tab = 1
     
     # Force-select the active tab
     if current_tab != 0:
