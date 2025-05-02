@@ -256,6 +256,7 @@ class LLMInteractionLogger:
     def get_recent_logs(self, limit: int = 10) -> List[Dict[str, Any]]:
         """
         Get recent logs for display in the UI.
+        Get recent logs for display in the UI. Combines in-memory logs and logs from files.
         
         Args:
             limit: Maximum number of logs to return
@@ -263,7 +264,54 @@ class LLMInteractionLogger:
         Returns:
             List of recent log entries
         """
-        return self.logs[-limit:] if len(self.logs) > limit else self.logs
+        all_logs = []
+         
+         # First, try to read logs from files
+        try:
+             # Check if log directory exists
+             if os.path.exists(self.log_dir):
+                 # Get all .json log files from subdirectories
+                 log_files = []
+                 for root, _, files in os.walk(self.log_dir):
+                     for file in files:
+                         if file.endswith(".json"):
+                             log_files.append(os.path.join(root, file))
+                 
+                 # Sort by modification time (most recent first)
+                 log_files.sort(key=lambda x: os.path.getmtime(x), reverse=True)
+                 
+                 # Read the most recent log files
+                 for file_path in log_files[:max(50, limit*2)]:  # Read more than needed for filtering
+                     try:
+                         with open(file_path, 'r', encoding='utf-8') as f:
+                             log_entry = json.load(f)
+                             # Extract interaction type from directory name
+                             type_dir = os.path.basename(os.path.dirname(file_path))
+                             if "type" not in log_entry:
+                                 log_entry["type"] = type_dir
+                             all_logs.append(log_entry)
+                     except Exception as e:
+                         logger.error(f"Error reading log file {file_path}: {str(e)}")
+        except Exception as e:
+             logger.error(f"Error reading logs from disk: {str(e)}")
+         
+         # Add in-memory logs (which might have more recent entries not yet written to disk)
+        all_logs.extend(self.logs)
+         
+         # Remove duplicates (based on timestamp)
+        seen_timestamps = set()
+        unique_logs = []
+        for log in all_logs:
+            timestamp = log.get("timestamp")
+            if timestamp and timestamp not in seen_timestamps:
+                seen_timestamps.add(timestamp)
+                unique_logs.append(log)
+         
+         # Sort by timestamp (most recent first)
+        unique_logs.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
+         
+         # Return the most recent logs up to the limit
+        return unique_logs[:limit]
     
     def clear_logs(self) -> None:
         """Clear in-memory logs."""

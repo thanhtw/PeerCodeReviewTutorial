@@ -257,8 +257,8 @@ class ErrorSelectorUI:
             horizontal=True
         )
 
-        # Filter for searching errors
-        #search_term = st.text_input("Search Errors", "")
+        #Filter for searching errors
+        search_term = st.text_input("Search Errors", "")
         
         # Container for selected errors
         if "selected_specific_errors" not in st.session_state:
@@ -266,9 +266,9 @@ class ErrorSelectorUI:
             
         # Display errors based on type
         if error_type == "Build Errors":
-            self._display_build_errors(error_repository, build_categories)
+            self._display_build_errors(error_repository, build_categories,search_term)
         else:
-            self._display_checkstyle_errors(error_repository, checkstyle_categories)
+            self._display_checkstyle_errors(error_repository, checkstyle_categories, search_term)
             
         # Show selected errors
         st.subheader("Selected Issues")
@@ -288,8 +288,13 @@ class ErrorSelectorUI:
         
         return st.session_state.selected_specific_errors
         
-    def _display_build_errors(self, error_repository, categories):
+    def _display_build_errors(self, error_repository, categories, search_term=""):
         """Display build errors with filtering"""
+        # Filter errors if search term is provided
+        if search_term:
+            errors = [e for e in errors if search_term.lower() in e.get("error_name", "").lower() 
+                    or search_term.lower() in e.get("description", "").lower()]
+                 
         for category in categories:
             # Get errors for this category
             errors = error_repository.get_category_errors("build", category)
@@ -329,11 +334,15 @@ class ErrorSelectorUI:
                     
                     st.markdown("---")
     
-    def _display_checkstyle_errors(self, error_repository, categories):
+    def _display_checkstyle_errors(self, error_repository, categories, search_term=""):
         """Display checkstyle errors with filtering"""
         for category in categories:
             # Get errors for this category
             errors = error_repository.get_category_errors("checkstyle", category)
+
+            if search_term:
+                errors = [e for e in errors if search_term.lower() in e.get("check_name", "").lower() 
+                        or search_term.lower() in e.get("description", "").lower()]
                 
             if not errors:
                 continue

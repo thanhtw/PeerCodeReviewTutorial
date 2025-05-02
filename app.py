@@ -68,6 +68,14 @@ css_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "cs
 # Try loading CSS with improved function
 loaded_files = load_css(css_directory=css_dir)
 
+log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "llm_logs")
+if not os.path.exists(log_dir):
+     try:
+         os.makedirs(log_dir, exist_ok=True)
+         logger.info(f"Created log directory: {log_dir}")
+     except Exception as e:
+         logger.warning(f"Failed to create log directory: {str(e)}")
+
 if not loaded_files:
     # Fallback to inline CSS if loading fails
     logger.warning("Failed to load CSS files, falling back to inline CSS")
