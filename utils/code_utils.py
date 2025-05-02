@@ -46,7 +46,7 @@ def add_line_numbers(code: str) -> str:
     
     return "\n".join(numbered_lines)
 
-def create_regeneration_prompt(code: str, domain: str, missing_errors: list, found_errors: list, requested_errors: list, extra_errors: list = None) -> str:
+def create_regeneration_prompt(code: str, domain: str, missing_errors: list, found_errors: list, requested_errors: list) -> str:
     """
     Create a focused prompt for regenerating code with missing errors and removing extra errors.
     Enhanced to provide clear instructions for exact error requirements.
@@ -56,8 +56,7 @@ def create_regeneration_prompt(code: str, domain: str, missing_errors: list, fou
         domain: Domain of the code (must be consistent with original)
         missing_errors: List of error keys that need to be implemented
         found_errors: List of error keys already implemented correctly
-        requested_errors: Full list of requested error dictionaries
-        extra_errors: List of extra errors that should be removed
+        requested_errors: Full list of requested error dictionaries      
         
     Returns:
         Optimized regeneration prompt
@@ -99,15 +98,6 @@ def create_regeneration_prompt(code: str, domain: str, missing_errors: list, fou
     missing_text = "\n".join(f"- {instr}" for instr in missing_instructions)
     found_text = "\n".join(f"- {err}" for err in found_errors)
     
-    # Create text for extra errors that need to be removed
-    extra_text = ""
-    if extra_errors and len(extra_errors) > 0:
-        extra_list = "\n".join(f"- {err}" for err in extra_errors)
-        extra_text = f"""
-        EXTRA ERRORS TO REMOVE:
-        These errors were not requested and should be removed from the code:
-        {extra_list}
-        """
     
     # Create improved prompt with clearer instructions and error verification steps
     prompt = f"""You are an educational Java error creator who intentionally introduces specific errors in code for teaching purposes.
@@ -124,12 +114,10 @@ def create_regeneration_prompt(code: str, domain: str, missing_errors: list, fou
             EXISTING ERRORS TO KEEP - Do not modify these errors:
             {found_text if found_text else "No correctly implemented errors found."}
 
-            {extra_text}
-
             VERY IMPORTANT INSTRUCTIONS:
-            1. The final code MUST contain EXACTLY {total_requested} errors - no more, no less
+            1. Focus on implementing EXACTLY the requested errors
             2. NEVER add comments like "// added to fix", "// fixed", or "// corrected" - these errors are meant to remain as errors!
-            3. Do not add any errors which are not in the requested list
+            3. Do not change the domain or structure of the code
             4. Errors must be actual Java errors, not just comments about errors
             5. Use EXACTLY the same {domain} domain and maintain the original code structure
             6. For each error you add, include a comment in the format: // ERROR: [TYPE] - [NAME] - [Brief explanation]
@@ -224,15 +212,6 @@ def create_evaluation_prompt(code: str, requested_errors: list) -> str:
             }}
             // Include all requested errors that are not implemented
         ],
-        "extra_errors": [
-            {{
-            "error_type": "BUILD",
-            "error_name": "Unreported Exception",
-            "line_number": 25,
-            "explanation": "This error was not in the requested list"
-            }}
-            // Include any errors found in the code that weren't requested
-        ],
         "valid": false,
         "feedback": "The code contains 3 of 4 requested errors, is missing 1 requested error, and has 2 extra errors not requested."
         }}
@@ -319,11 +298,14 @@ def create_code_generation_prompt(code_length: str, difficulty_level: str, selec
             - Challenge the student to think deeply about the code
             """
     
+     # Use provided domain or default to "general"
+    
+    domain_str = domain or "general"
     # Create a focused prompt with clear role definition and beginner focus - EMPHASIZE ERROR COUNT
     prompt = f"""You are an expert Java programming instructor who creates educational code examples with specific errors for students to practice identifying and fixing.
 
             CRITICAL TASK:
-            Generate a {code_length} Java program for a {domain or "general"} system with EXACTLY {error_count} intentional errors for code review practice. No more, no fewer.
+            Generate a {code_length} Java program for a {domain_str} system with EXACTLY {error_count} intentional errors for code review practice. No more, no fewer.
 
             CRITICAL REQUIREMENTS:
             - You MUST implement EXACTLY {error_count} errors - this is NON-NEGOTIABLE

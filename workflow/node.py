@@ -10,7 +10,8 @@ import re
 from typing import Dict, Any, List, Tuple, Optional
 
 from state_schema import WorkflowState, CodeSnippet
-from utils.code_utils import extract_both_code_versions, get_error_count_for_difficulty
+from utils.code_utils import extract_both_code_versions, get_error_count_for_difficulty, create_regeneration_prompt
+import random
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -59,7 +60,23 @@ class WorkflowNodes:
             # Reset state for a fresh generation
             state.evaluation_attempts = 0
             state.evaluation_result = None
-            state.code_generation_feedback = None            
+            state.code_generation_feedback = None
+
+             # Randomly select a domain if not already set
+            if not state.domain:
+                # Use the domains from code_generator if available
+                if hasattr(self.code_generator, 'domains') and self.code_generator.domains:
+                    state.domain = random.choice(self.code_generator.domains)
+                else:
+                    # Default domains if not available in code_generator
+                    domains = [
+                        "user_management", "file_processing", "data_validation", 
+                        "calculation", "inventory_system", "notification_service",
+                        "logging", "banking", "e-commerce", "student_management"
+                    ]
+                    state.domain = random.choice(domains)
+                
+                logger.info(f"Selected domain for code generation: {state.domain}")            
             
             # Determine whether we're using specific errors or categories
             using_specific_errors = len(selected_specific_errors) > 0
@@ -117,7 +134,8 @@ class WorkflowNodes:
             response = self.code_generator._generate_with_llm(
                 code_length=code_length,
                 difficulty_level=difficulty_level,
-                selected_errors=selected_errors
+                selected_errors=selected_errors,
+                domain=state.domain  # Use domain from state
             )
 
             # Extract both annotated and clean versions
@@ -169,7 +187,7 @@ class WorkflowNodes:
                 metadata = {
                     "code_length": state.code_length,
                     "difficulty_level": state.difficulty_level,
-                    "domain": "general",
+                    "domain":  state.domain,
                     "selected_errors": state.selected_error_categories,
                     "attempt": state.evaluation_attempts,
                     "max_attempts": state.max_evaluation_attempts
@@ -276,7 +294,18 @@ class WorkflowNodes:
                 evaluation_result = raw_evaluation_result
                 # Add the original error count to the evaluation result
                 evaluation_result["original_error_count"] = original_error_count
-            
+
+                # IMPORTANT: Explicitly set valid flag based on missing and extra errors
+                missing_errors = evaluation_result.get('missing_errors', [])
+                
+                # Only valid if no missing errors and no extra errors
+                has_missing = len(missing_errors) > 0               
+                evaluation_result['valid'] = not (has_missing)
+                
+                # Log explicit validation status
+                logger.info(f"Code validation: valid={evaluation_result['valid']}, " 
+                        f"missing={len(missing_errors)}")
+                
             # Update state with evaluation results
             state.evaluation_result = evaluation_result
             state.evaluation_attempts += 1
@@ -286,41 +315,14 @@ class WorkflowNodes:
             missing_count = len(evaluation_result.get('missing_errors', []))
             logger.info(f"Code evaluation complete: {found_count}/{original_error_count} errors implemented, {missing_count} missing")
             
-            # Check if there are extra errors beyond what was requested
-            extra_errors = evaluation_result.get('extra_errors', [])
-            has_extra_errors = len(extra_errors) > 0
             
-            # Generate feedback for code regeneration regardless of valid status
-            # This ensures we always have feedback ready if needed
             feedback = None
             
             # If we have missing errors or extra errors, we need to regenerate the code
-            needs_regeneration = missing_count > 0 or has_extra_errors
+            needs_regeneration = missing_count > 0
             
             # If we have extra errors, use the updated regeneration function that handles extras
-            if has_extra_errors:
-                logger.warning(f"Found {len(extra_errors)} extra errors beyond the {original_error_count} requested")
-                
-                # Use the version of regeneration prompt that handles extra errors
-                if hasattr(self.code_evaluation, 'generate_improved_prompt_with_extras'):
-                    feedback = self.code_evaluation.generate_improved_prompt_with_extras(
-                        code, requested_errors, evaluation_result
-                    )
-                else:
-                    # Import the updated function if not available as a method
-                    from utils.code_utils import create_regeneration_prompt
-                    
-                    # Prepare data for regeneration with emphasis on having exactly the right errors
-                    feedback = create_regeneration_prompt(
-                        code=code,
-                        domain=self._infer_domain_from_code(code),
-                        missing_errors=evaluation_result.get('missing_errors', []),
-                        found_errors=evaluation_result.get('found_errors', []),
-                        requested_errors=requested_errors,
-                        extra_errors=extra_errors
-                    )
-            # Missing errors but no extra errors
-            elif missing_count > 0:
+            if missing_count > 0:
                 logger.warning(f"Missing {missing_count} out of {original_error_count} requested errors")
                 
                 # Use standard regeneration prompt but enhance it for clarity
@@ -329,31 +331,25 @@ class WorkflowNodes:
                         code, requested_errors, evaluation_result
                     )
                 else:
-                    # Import the updated function if not available as a method
-                    from utils.code_utils import create_regeneration_prompt
-                    
+                  
                     # Use the regeneration prompt with emphasis on adding missing errors
                     feedback = create_regeneration_prompt(
                         code=code,
-                        domain=self._infer_domain_from_code(code),
+                        domain=state.domain,
                         missing_errors=evaluation_result.get('missing_errors', []),
                         found_errors=evaluation_result.get('found_errors', []),
-                        requested_errors=requested_errors,
-                        extra_errors=[]
+                        requested_errors=requested_errors
                     )
             else:
                 # No missing or extra errors - we're good!
                 logger.info(f"All {original_error_count} requested errors implemented correctly")
-                
-                # Still create a feedback prompt in case we need it later
-                from utils.code_utils import create_regeneration_prompt
+                             
                 feedback = create_regeneration_prompt(
                     code=code,
-                    domain=self._infer_domain_from_code(code),
+                    domain=state.domain,
                     missing_errors=[],
                     found_errors=evaluation_result.get('found_errors', []),
-                    requested_errors=requested_errors,
-                    extra_errors=[]
+                    requested_errors=requested_errors                    
                 )
                     
             state.code_generation_feedback = feedback
@@ -368,8 +364,6 @@ class WorkflowNodes:
                 state.current_step = "regenerate"
                 if missing_count > 0:
                     logger.info(f"Found {missing_count} missing errors, proceeding to regeneration")
-                if has_extra_errors:
-                    logger.info(f"Found {len(extra_errors)} extra errors, proceeding to regeneration")
             else:
                 # Otherwise, we've either reached max attempts or have no more missing errors
                 state.current_step = "review"
@@ -495,45 +489,7 @@ class WorkflowNodes:
             logger.error(f"Error analyzing review: {str(e)}", exc_info=True)
             state.error = f"Error analyzing review: {str(e)}"
             return state
-    
-    def _infer_domain_from_code(self, code: str) -> str:
-        """
-        Infer the domain of the code based on class and variable names.
-        
-        Args:
-            code: The Java code
-            
-        Returns:
-            Inferred domain string
-        """
-        code_lower = code.lower()
-        
-        # Check for common domains
-        domains = {
-            "student_management": ["student", "course", "enroll", "grade", "academic"],
-            "file_processing": ["file", "read", "write", "path", "directory"],
-            "data_validation": ["validate", "input", "check", "valid", "sanitize"],
-            "calculation": ["calculate", "compute", "math", "formula", "result"],
-            "inventory_system": ["inventory", "product", "stock", "item", "quantity"],
-            "notification_service": ["notify", "message", "alert", "notification", "send"],
-            "banking": ["account", "bank", "transaction", "balance", "deposit"],
-            "e-commerce": ["cart", "product", "order", "payment", "customer"]
-        }
-        
-        # Count domain-related terms
-        domain_scores = {}
-        for domain, terms in domains.items():
-            score = sum(code_lower.count(term) for term in terms)
-            domain_scores[domain] = score
-        
-        # Return the highest scoring domain, or a default
-        if domain_scores:
-            max_domain = max(domain_scores.items(), key=lambda x: x[1])
-            if max_domain[1] > 0:
-                return max_domain[0]
-        
-        return "general_application"  # Default domain
-            
+       
     def _extract_requested_errors(self, state: WorkflowState) -> List[Dict[str, Any]]:
         """
         Extract requested errors from the state with improved error handling and type safety.

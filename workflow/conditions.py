@@ -42,47 +42,29 @@ class WorkflowConditions:
             logger.info("Path decision: regenerate_code (explicit current_step)")
             return "regenerate_code"
         
-        # Check if LLM provider is Groq - may need special handling
-        is_groq_provider = False
-        if hasattr(state, 'provider') and state.provider == "groq":
-            is_groq_provider = True
-            logger.info("Using Groq provider, applying special handling")
         
-        # Check if evaluation passed - all errors implemented correctly
-        if state.evaluation_result and state.evaluation_result.get("valid", False):
+         # IMPORTANT: Explicitly check validity flag first
+        if state.evaluation_result and state.evaluation_result.get("valid", False) == True:
             logger.info("Path decision: review_code (evaluation passed)")
             return "review_code"
+
+        # Check if we have missing or extra errors and haven't reached max attempts
+        has_missing_errors = state.evaluation_result and len(state.evaluation_result.get("missing_errors", [])) > 0
+        has_extra_errors = state.evaluation_result and len(state.evaluation_result.get("extra_errors", [])) > 0
+        needs_regeneration = has_missing_errors or has_extra_errors
         
-        # Check for EXTRACTION_FAILED special marker in missing errors (Groq fallback)
-        if state.evaluation_result and "missing_errors" in state.evaluation_result:
-            missing_errors = state.evaluation_result["missing_errors"]
-            if "EXTRACTION_FAILED" in missing_errors:
-                # Force regeneration for extraction failures with Groq
-                if hasattr(state, 'evaluation_attempts') and state.evaluation_attempts < getattr(state, 'max_evaluation_attempts', 3):
-                    logger.info("Path decision: regenerate_code (extraction failed, forcing regeneration)")
-                    return "regenerate_code"
+        # Get current and max attempt counts with safe defaults
+        current_attempts = getattr(state, 'evaluation_attempts', 0)
+        max_attempts = getattr(state, 'max_evaluation_attempts', 3)
         
-        # IMPORTANT: Check for missing errors that need fixing
-        if state.evaluation_result and state.evaluation_result.get("missing_errors", []):
-            # Only regenerate if we haven't reached max attempts
-            if hasattr(state, 'evaluation_attempts') and state.evaluation_attempts < getattr(state, 'max_evaluation_attempts', 3):
-                logger.info(f"Path decision: regenerate_code (evaluation found missing errors)")
-                return "regenerate_code"
+        # If we need regeneration and haven't reached max attempts, regenerate
+        if needs_regeneration and current_attempts < max_attempts:
+            reason = "missing errors" if has_missing_errors else "extra errors"
+            logger.info(f"Path decision: regenerate_code (found {reason})")
+            return "regenerate_code"
         
-        # Special case for Groq: Be more aggressive with regeneration for Groq provider
-        if is_groq_provider and hasattr(state, 'evaluation_attempts') and state.evaluation_attempts < getattr(state, 'max_evaluation_attempts', 3):
-            # If we're using Groq and haven't reached max attempts, check if the evaluation might have failed
-            if not state.evaluation_result or not state.evaluation_result.get("found_errors"):
-                logger.info("Path decision: regenerate_code (Groq provider with potential evaluation issues)")
-                return "regenerate_code"
-        
-        # If no evaluation result yet, check if we can do evaluation 
-        if state.code_snippet:
-            logger.info("Path decision: review_code (code exists but no evaluation result)")
-            return "review_code"
-        
-        # Default case - need to generate code first
-        logger.info("Path decision: review_code (default case)")
+        # If we've reached max attempts or don't need regeneration, move to review
+        logger.info(f"Path decision: review_code (attempts: {current_attempts}/{max_attempts})")
         return "review_code"
     
     @staticmethod

@@ -34,6 +34,9 @@ class WorkflowState(BaseModel):
     # Code generation parameters
     code_length: str = Field("medium", description="Length of code (short, medium, long)")
     difficulty_level: str = Field("medium", description="Difficulty level (easy, medium, hard)")
+
+    # Add domain field for consistent use across workflow steps
+    domain: Optional[str] = Field(None, description="Domain context for the generated code")
     
     # IMPORTANT: Replace underscore field with properly named field
     # Use a single field with a clear name
