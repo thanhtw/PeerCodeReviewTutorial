@@ -641,7 +641,7 @@ def get_error_count_for_difficulty(difficulty: str) -> int:
 
 def generate_comparison_report(evaluation_errors: List[str], review_analysis: Dict[str, Any]) -> str:
     """
-    Generate a comparison report between student review and evaluated errors.
+    Generate a concise comparison report between student review and evaluated errors.
     
     Args:
         evaluation_errors: List of errors found by the evaluation
@@ -650,192 +650,68 @@ def generate_comparison_report(evaluation_errors: List[str], review_analysis: Di
     Returns:
         Formatted comparison report
     """
-    # Create report header
-    report = "# Detailed Comparison: Your Review vs. Actual Issues\n\n"
-    
-    # New section explaining the comparison method
-    report += "## How Reviews Are Compared\n\n"
-    report += "Your review is compared to the known problems in the code using a semantic matching approach. "
-    report += "This means we look for whether you've identified the key aspects of each issue, rather than requiring exact matching phrases.\n\n"
-    
-    report += "For each issue, the system checks if your comments include:\n"
-    report += "1. **The correct location** of the error (line numbers, method names, etc.)\n"
-    report += "2. **The appropriate error type or category** (e.g., NullPointerException, naming convention)\n"
-    report += "3. **A clear explanation** of why it's problematic\n\n"
-    
-    report += "A problem is considered 'identified' if you correctly mentioned its key aspects. "
-    report += "Partial credit may be given for partially identified issues. "
-    report += "False positives are issues you reported that don't match any actual problems in the code.\n\n"
-    
-    # Problems section
-    report += "## Code Issues Analysis\n\n"
-    
-    # Safely extract data from review analysis
+    # Extract performance metrics
     identified_problems = review_analysis.get("identified_problems", [])
     missed_problems = review_analysis.get("missed_problems", [])
     false_positives = review_analysis.get("false_positives", [])
     
-    # IMPROVED: Get the total problems count directly from the review analysis
-    # This ensures we're using the same count everywhere
-    total_problems = review_analysis.get("total_problems", 0)
+    # Get total problems count from different possible sources
+    total_problems = (review_analysis.get("total_problems", 0) or 
+                     review_analysis.get("original_error_count", 0) or 
+                     len(evaluation_errors))
     
-    # If total_problems is not available, try original_error_count
-    if total_problems <= 0:
-        total_problems = review_analysis.get("original_error_count", 0)
-        
-    # Last resort fallback to evaluation_errors length
-    if total_problems <= 0:
-        total_problems = len(evaluation_errors)
-    
-    # Ensure all problems are properly converted to strings
-    known_problems_str = [str(p) if not isinstance(p, str) else p for p in evaluation_errors]
-    identified_problems_str = [str(p) if not isinstance(p, str) else p for p in identified_problems]
-    missed_problems_str = [str(p) if not isinstance(p, str) else p for p in missed_problems]
-    false_positives_str = [str(p) if not isinstance(p, str) else p for p in false_positives]
-    
-    # Issues found correctly
-    if identified_problems_str:
-        report += "### Issues You Identified Correctly\n\n"
-        for i, problem in enumerate(identified_problems_str, 1):
-            report += f"**{i}. {problem}**\n\n"
-            report += "Great job finding this issue! "
-            report += "This demonstrates your understanding of this type of problem.\n\n"
-    
-    # Issues missed with detailed guidance
-    if missed_problems_str:
-        report += "### Issues You Missed\n\n"
-        for i, problem in enumerate(missed_problems_str, 1):
-            report += f"**{i}. {problem}**\n\n"
-            
-            # Enhanced guidance with example comment format
-            problem_lower = problem.lower()
-            report += "**How to identify this issue:**\n\n"
-            
-            if "null" in problem_lower or "nullpointer" in problem_lower:
-                report += "When reviewing Java code, look for variables that might be null before being accessed. "
-                report += "Check for null checks before method calls or field access. Missing null checks often lead to NullPointerExceptions at runtime.\n\n"
-                report += "**Example comment format:**\n\n"
-                report += "`Line X: [NullPointerException Risk] - The variable 'name' is accessed without a null check, which could cause a runtime exception`\n\n"
-            elif "naming" in problem_lower or "convention" in problem_lower:
-                report += "Check that class names use UpperCamelCase, while methods and variables use lowerCamelCase. "
-                report += "Constants should use UPPER_SNAKE_CASE. Consistent naming improves code readability and maintainability.\n\n"
-                report += "**Example comment format:**\n\n"
-                report += "`Line X: [Naming Convention] - The variable 'user_name' should use lowerCamelCase format (userName)`\n\n"
-            elif "equal" in problem_lower or "==" in problem_lower:
-                report += "String and object comparisons should use the .equals() method instead of the == operator, which only compares references. "
-                report += "Using == for content comparison is a common error that can lead to unexpected behavior.\n\n"
-                report += "**Example comment format:**\n\n"
-                report += "`Line X: [Object Comparison] - String comparison uses == operator instead of .equals() method`\n\n"
-            elif "array" in problem_lower or "index" in problem_lower:
-                report += "Always verify that array indices are within valid ranges before accessing elements. "
-                report += "Check for potential ArrayIndexOutOfBoundsException risks, especially in loops.\n\n"
-                report += "**Example comment format:**\n\n"
-                report += "`Line X: [Array Bounds] - Array access without bounds checking could cause ArrayIndexOutOfBoundsException`\n\n"
-            elif "whitespace" in problem_lower or "indent" in problem_lower:
-                report += "Look for consistent indentation and proper whitespace around operators and keywords. "
-                report += "Proper formatting makes code more readable and maintainable.\n\n"
-                report += "**Example comment format:**\n\n"
-                report += "`Line X: [Formatting] - Inconsistent indentation makes the code hard to read`\n\n"
-            else:
-                report += "When identifying issues, be specific about the location, type of error, and why it's problematic. "
-                report += "Include line numbers and detailed explanations in your comments.\n\n"
-                report += "**Example comment format:**\n\n"
-                report += "`Line X: [Error Type] - Description of the issue and why it's problematic`\n\n"
-    
-    # False positives
-    if false_positives_str:
-        report += "### Issues You Incorrectly Identified\n\n"
-        for i, problem in enumerate(false_positives_str, 1):
-            report += f"**{i}. {problem}**\n\n"
-            report += "This wasn't actually an issue in the code. "
-            report += "Be careful not to flag correct code as problematic.\n\n"
-    
-    # Calculate metrics consistently using total_problems
-    identified_count = len(identified_problems_str)
-    missed_count = len(missed_problems_str)
-    false_positive_count = len(false_positives_str)
-    
+    # Calculate metrics
+    identified_count = len(identified_problems)
     accuracy = (identified_count / total_problems * 100) if total_problems > 0 else 0
     
-    # Overall assessment
-    report += "### Overall Assessment\n\n"
+    # Convert all problems to strings
+    identified_str = [str(p) if not isinstance(p, str) else p for p in identified_problems]
+    missed_str = [str(p) if not isinstance(p, str) else p for p in missed_problems]
+    false_str = [str(p) if not isinstance(p, str) else p for p in false_positives]
     
-    if accuracy >= 80:
-        report += "**Excellent review!** You found most of the issues in the code.\n\n"
-    elif accuracy >= 60:
-        report += "**Good review.** You found many issues, but missed some important ones.\n\n"
-    elif accuracy >= 40:
-        report += "**Fair review.** You found some issues, but missed many important ones.\n\n"
-    else:
-        report += "**Needs improvement.** You missed most of the issues in the code.\n\n"
+    # Build report with markdown
+    report = "# Code Review Assessment\n\n"
     
-    report += f"- You identified {identified_count} out of {total_problems} issues ({accuracy:.1f}%)\n"
-    report += f"- You missed {total_problems - identified_count} issues\n"
-    report += f"- You incorrectly identified {false_positive_count} non-issues\n\n"
+    # Performance summary
+    report += f"**Performance:** {identified_count}/{total_problems} issues identified ({accuracy:.1f}%)\n\n"
     
-    # Add improvement tips
-    report += "## Tips for Improvement\n\n"
+    # Issues identified
+    if identified_str:
+        report += "## Issues Correctly Identified\n\n"
+        for i, problem in enumerate(identified_str, 1):
+            report += f"✅ **{i}.** {problem}\n\n"
     
-    if missed_problems_str:
-        # Categories of missed issues
-        missed_categories = []
-        
-        for problem in missed_problems_str:
+    # Issues missed
+    if missed_str:
+        report += "## Issues Missed\n\n"
+        for i, problem in enumerate(missed_str, 1):
+            report += f"❌ **{i}.** {problem}\n\n"
+    
+    # False positives
+    if false_str:
+        report += "## False Positives\n\n"
+        for i, problem in enumerate(false_str, 1):
+            report += f"⚠️ **{i}.** {problem}\n\n"
+    
+    # Improvement tips - categorize missed issues
+    if missed_str:
+        missed_categories = set()
+        for problem in missed_str:
             problem_lower = problem.lower()
-            if "null" in problem_lower:
-                missed_categories.append("null pointer handling")
-            elif "naming" in problem_lower or "convention" in problem_lower:
-                missed_categories.append("naming conventions")
-            elif "javadoc" in problem_lower or "comment" in problem_lower:
-                missed_categories.append("documentation")
-            elif "exception" in problem_lower or "throw" in problem_lower:
-                missed_categories.append("exception handling")
-            elif "loop" in problem_lower or "condition" in problem_lower:
-                missed_categories.append("logical conditions")
-            elif "whitespace" in problem_lower or "indentation" in problem_lower:
-                missed_categories.append("code formatting")
-            elif "array" in problem_lower or "index" in problem_lower:
-                missed_categories.append("array handling")
-        
-        # Remove duplicates and sort
-        missed_categories = sorted(set(missed_categories))
+            if "null" in problem_lower: missed_categories.add("null pointer handling")
+            elif "naming" in problem_lower: missed_categories.add("naming conventions")
+            elif "equals" in problem_lower or "==" in problem_lower: missed_categories.add("object comparison")
+            elif "array" in problem_lower: missed_categories.add("array bounds")
+            elif "exception" in problem_lower: missed_categories.add("exception handling")
+            elif "whitespace" in problem_lower: missed_categories.add("code formatting")
         
         if missed_categories:
-            report += "Based on your review, focus on these areas in future code reviews:\n\n"
-            for category in missed_categories:
-                report += f"- **{category.title()}**\n"
-            report += "\n"
+            report += "## Focus Areas\n\n"
+            for category in sorted(missed_categories):
+                report += f"- **{category}**\n"
     
-    # Add systematic approach suggestion
-    report += """### Systematic Review Approach
-
-        For more thorough code reviews, try this systematic approach:
-
-        1. **First pass**: Check for syntax errors, compilation issues, and obvious bugs
-        2. **Second pass**: Examine naming conventions, code style, and documentation
-        3. **Third pass**: Analyze logical flow, edge cases, and potential runtime errors
-        4. **Final pass**: Look for performance issues, security concerns, and maintainability problems
-
-        By following a structured approach, you'll catch more issues and provide more comprehensive reviews.
-        """
-    
-    # Add effective comment format
-    report += """
-        ### Effective Comment Format
-
-        When writing code review comments, use this format for clarity and consistency:
-
-        ```
-        Line X: [Error Type] - Description of the issue and why it's problematic
-        ```
-
-        For example:
-        ```
-        Line 42: [NullPointerException Risk] - The 'user' variable could be null here, add a null check before calling methods
-        ```
-
-        This format helps others quickly understand the location, type, and impact of each issue.
-        """
+    # Quick tip
+    report += "\n**Tip:** Use format `Line X: [Error Type] - Description` in future reviews.\n"
     
     return report
 
