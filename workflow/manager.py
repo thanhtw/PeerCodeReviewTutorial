@@ -237,14 +237,24 @@ class WorkflowManager:
                     identified_count = latest_review.analysis.get("identified_count", 0) 
                     latest_review.analysis["identified_percentage"] = (identified_count / original_error_count) * 100
                     latest_review.analysis["accuracy_percentage"] = (identified_count / original_error_count) * 100
-                
+
+                # Convert review history to format expected by generate_comparison_report
+                converted_history = []
+                for review in state.review_history:
+                    converted_history.append({
+                        "iteration_number": review.iteration_number,
+                        "student_review": review.student_review,
+                        "review_analysis": review.analysis,
+                        "targeted_guidance": review.targeted_guidance
+                    })
                 # Generate the comparison report with the updated analysis
                 state.comparison_report = generate_comparison_report(
                     found_errors,
                     latest_review.analysis,
-                    state.review_history
+                    converted_history
                 )
                 logger.info("Generated comparison report for feedback")
+                
             except Exception as e:
                 logger.error(f"Error generating comparison report: {str(e)}")
                 state.comparison_report = (

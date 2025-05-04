@@ -9,6 +9,7 @@ import streamlit as st
 import logging
 import time
 from typing import Dict, List, Any, Optional, Callable
+import datetime
 
 # Configure logging
 logging.basicConfig(
@@ -198,7 +199,7 @@ def render_review_tab(workflow, code_display_ui):
                 # Switch to feedback tab (index 2)
                 st.session_state.active_tab = 2
                 # Force rerun to update UI
-                st.rerun()
+            st.rerun()
         
         # Render review input with current state
         code_display_ui.render_review_input(
