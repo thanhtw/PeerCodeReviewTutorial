@@ -10,7 +10,7 @@ import re
 from typing import Dict, Any, List, Tuple, Optional
 
 from state_schema import WorkflowState, CodeSnippet
-from utils.code_utils import extract_both_code_versions, get_error_count_for_difficulty, create_regeneration_prompt
+from utils.code_utils import extract_both_code_versions, create_regeneration_prompt, get_error_count_from_state
 import random
 
 # Configure logging
@@ -105,7 +105,8 @@ class WorkflowNodes:
                 logger.info(f"Using category-based mode with categories: {selected_error_categories}")
                 
                 # Get exact number based on difficulty
-                required_error_count = get_error_count_for_difficulty(difficulty_level)
+                required_error_count = get_error_count_from_state(difficulty_level)
+                
                 selected_errors, _ = self.error_repository.get_errors_for_llm(
                     selected_categories=selected_error_categories,
                     count=required_error_count,

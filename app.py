@@ -82,6 +82,21 @@ if not loaded_files:
 
 def main():
     """Enhanced main application function with provider selection."""
+    # Check if we're performing a full reset
+    if st.session_state.get("full_reset", False):
+        # Remove the reset flag
+        del st.session_state["full_reset"]
+        # Create a completely new session state
+        for key in list(st.session_state.keys()):
+            # Only keep essential UI preferences 
+            if key not in ["error_selection_mode", "selected_error_categories", "selected_specific_errors"]:
+                del st.session_state[key]
+        # Initialize a fresh workflow state
+        st.session_state.workflow_state = WorkflowState()
+        # Set active tab to generation tab
+        st.session_state.active_tab = 0
+    
+    
     # Initialize session state
     init_session_state()
     

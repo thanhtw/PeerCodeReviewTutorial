@@ -71,7 +71,7 @@ class WorkflowState(BaseModel):
 
     evaluation_attempts: int = Field(0, description="Number of attempts to generate code")
 
-    max_evaluation_attempts: int = Field(3, description="Maximum number of code generation attempts")
+    max_evaluation_attempts: int = Field(5, description="Maximum number of code generation attempts")
 
     code_generation_feedback: Optional[str] = Field(None, description="Feedback for code generation")
     

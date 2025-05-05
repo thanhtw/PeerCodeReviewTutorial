@@ -339,3 +339,4 @@ def create_enhanced_tabs(labels: List[str]):
         st.session_state.active_tab = current_tab
     
     return tabs
+

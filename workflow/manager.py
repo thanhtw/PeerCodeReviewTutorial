@@ -251,7 +251,8 @@ class WorkflowManager:
                 state.comparison_report = generate_comparison_report(
                     found_errors,
                     latest_review.analysis,
-                    converted_history
+                    converted_history,
+                    llm=self.summary_model
                 )
                 logger.info("Generated comparison report for feedback")
                 

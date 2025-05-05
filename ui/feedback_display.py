@@ -117,28 +117,10 @@ class FeedbackDisplayUI:
                 
                 with tabs[1]:  # Missed Issues
                     self._render_missed_issues(review_analysis)
-                
-        
-       
-        
+
         # Start over button
-        st.markdown("---")
-        
-        col1, col2 = st.columns([3, 1])
-        with col2:
-            if st.button("Start New Review", type="primary", use_container_width=True):
-                # Call the reset callback if provided
-                if on_reset_callback:
-                    on_reset_callback()
-                else:
-                    # Reset session state
-                    for key in list(st.session_state.keys()):
-                        # Keep error selection mode and categories
-                        if key not in ["error_selection_mode", "selected_error_categories"]:
-                            del st.session_state[key]
-                    
-                    # Rerun the app
-                    st.rerun()
+        st.markdown("---")            
+            
     
     def _render_performance_summary(self, review_analysis: Dict[str, Any], review_history: List[Dict[str, Any]]):
         """Render performance summary metrics and charts using the consistent original error count"""

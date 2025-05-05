@@ -229,7 +229,14 @@ def render_generate_tab(workflow, error_selector_ui, code_display_ui):
         code_display_ui: CodeDisplayUI instance
     """
     st.subheader("Generate Java Code Review Problem")
+
+    force_regenerate = st.session_state.get("force_regeneration", False)
+
+    if force_regenerate:
+        st.session_state.force_regeneration = False
+        st.info("Starting a new code review session. Please configure and generate a new problem.")
     
+
     # Initialize workflow steps if not present
     if not hasattr(st.session_state, 'workflow_steps'):
         st.session_state.workflow_steps = []

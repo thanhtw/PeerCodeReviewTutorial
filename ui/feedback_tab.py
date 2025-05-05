@@ -9,6 +9,7 @@ import logging
 from typing import Dict, List, Any, Optional, Callable
 from utils.code_utils import generate_comparison_report
 
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -99,23 +100,6 @@ def render_feedback_tab(workflow, feedback_display_ui):
             
             logger.info("Generated basic review summary for feedback tab")
     
-    # Reset callback with confirmation
-    def handle_reset():
-        # Create a confirmation dialog
-        if st.session_state.get("confirm_reset", False) or st.button("Confirm Reset", key="confirm_reset_btn"):
-            # Create a new workflow state
-            st.session_state.workflow_state = workflow.__class__()
-            
-            # Reset active tab
-            st.session_state.active_tab = 0
-            
-            # Reset confirmation flag
-            if "confirm_reset" in st.session_state:
-                del st.session_state.confirm_reset
-            
-            # Rerun the app
-            st.rerun()
-    
     # If no feedback generated yet but we have reviews, display a message
     if not state.comparison_report and not state.review_summary and not review_history:
         st.info("Please submit your review in the 'Submit Review' tab first.")
@@ -129,6 +113,5 @@ def render_feedback_tab(workflow, feedback_display_ui):
         comparison_report=state.comparison_report,
         review_summary=state.review_summary,
         review_analysis=latest_analysis,
-        review_history=review_history,
-        on_reset_callback=handle_reset
+        review_history=review_history        
     )
